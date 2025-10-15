@@ -19,17 +19,23 @@ There are two plotting/statistics scripts. "Plot_example_trajectories.jl" will p
 
 ## Results Data
 The results are divided into directories for each model in ./Results/. They are in JSON format with the following architecture: 
+```
 {"noisestimratio: NSR":{
                         "correlations":[cor4Hz, cor8Hz, cor12Hz], #from un-squared ITPC's
-                        "ITPCs":{ #the un-squared ITPCs (i.e. = R)
-                            "f":[[ITPCs from f condition test 1], [ITPCs from f condition test 2],[ITPCs from f condition test 3]], #ITPCs from 0-150Hz.
-                            "other conditions....":[[],[],[]],...
+                        "ITPCs":{#the un-squared ITPCs (i.e. = R)
+                                "f":[[ITPCs from f condition test 1], 
+                                     [ITPCs from f condition test 2],
+                                     [ITPCs from f condition test 3]], #ITPCs from 0-150Hz.
+                                "other conditions....":[[],[],[]],...
                         },
-                        "sortedITPCS_t2PD":[mean unsquared 4Hz ITPCs in order of increasing latency to peak derivative],[mean unsquared 8Hz ITPCs in order of increasing latency to peak derivative],[mean unsquared 12Hz ITPCs in order of increasing latency to peak derivative],[sorted latency to peak derivative],
+                        "sortedITPCS_t2PD": [mean unsquared 4Hz ITPCs in order of increasing latency to peak derivative],
+                                            [mean unsquared 8Hz ITPCs in order of increasing latency to peak derivative],
+                                            [mean unsquared 12Hz ITPCs in order of increasing latency to peak derivative],[sorted latency to peak derivative],
                         "sqr_correlations": N/A - dont use.
                         }
 
-}. 
+}
+```
 The result filenames correspond to the simulation settings used. 
 ./Results/Statistics/ contains csv's for each of the statistics tables presented in the supplementary material.
 
