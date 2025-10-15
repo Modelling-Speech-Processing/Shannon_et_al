@@ -903,13 +903,189 @@ Plots.prepare_output(tosave)
 PlotlyJS.savefig(Plots.plotlyjs_syncplot(tosave),"./ppaper_modulation_frequency_vary.pdf",width=Int64(ceil(width)), height=Int64(ceil(height)))
 savefig(tosave,"./ppaper_modulation_frequency_vary.pdf")
 
+##########################
+##########################
+##########################
+#evaluating mean 4Hz ITPC over phonemes for each model across λ (Noise-stimulus-ratios).
+##########################
+##########################
+##########################
+sorting_indxs=get_sorting_indices("./")
+Condition_keys=["vowel","b","d","g","k","p","t","m","n","s","z","l","r","f","v"]
+gr()
+default(xguidefontsize=11)
+default(yguidefontsize=11)
+default(xtickfontsize=9)
+default(ytickfontsize=9)
+default(legendfontsize=9)
+default(fontfamily="computer modern")
 
+Bang_wong_color_palette=[(230,159,0),(0,114,178),(0,158,115),(204,121,167),(86,180,233),(240,228,66),(0,0,0)]
+Bang_wong_color_palette_normalised=[(col[1]/255.0,col[2]/255.0,col[3]/255.0) for col in Bang_wong_color_palette]
+using ColorSchemes,Colors
+color_scheme=ColorScheme([Colors.RGB(col...) for col in Bang_wong_color_palette_normalised],"bang wong colorblind friendly")
+
+symbols=[:circle  :hexagon  :utriangle :diamond :plus :x :rect :cross :star]
+linestyles=[:solid :dash :dot :dashdot :dashdotdot :solid :solid :solid :solid] # for the 9 models.
+
+width_pts = 469*2 #single column.  # or any other value
+inches_per_points = 1/72.27 
+width_inches = width_pts *inches_per_points
+width_px= width_inches*72.27  # or  width_inches*DPI.. /2 as two square plots per column approx.
+
+
+NSRplot_model_data=[sorted_oana_ITPCs, Aine_data, C0066D025_data, phase_reset_data, nophasereset_data,  evoked_envelopestim_data,evoked_derivativestim_data,evoked_peakenvstim_data,evoked_peakratestim_data];
+Condition_keys=["vowel","b","d","g","k","p","t","m","n","s","z","l","r","f","v"]
+sqr_ITPCs_4Hz_per_model_sorted=Array{Float64,3}(undef, 15,9,length(noisestimratios))
+max_ITPCs_4Hz_per_model_sorted=Array{Float64,3}(undef, 15,9,length(noisestimratios)) # to store the max ITPCs for each model and NSR.
+min_ITPCs_4Hz_per_model_sorted=Array{Float64,3}(undef, 15,9,length(noisestimratios)) # to store the min ITPCs for each model and NSR.
+raw_3_ITPCs_4Hz_per_model_sorted=Array{Float64,4}(undef, 15,9,length(noisestimratios),3) # to store the raw ITPCs for each model and NSR.
+# scatter(time2pds,reduce(hcat,[reduce(hcat,NSRplot_model_data[2][8*(4-1)+7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2)
+# scatter!(time2pds,reduce(hcat,[reduce(hcat,NSRplot_model_data[2][8*(4-1)+7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2)
+# scatter!(time2pds,reduce(hcat,[reduce(hcat,NSRplot_model_data[2][8*(4-1)+7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2)
+# scatter!(time2pds,sqr_ITPCs_4Hz_per_model_sorted[:,2,7],ylims=(0,0.3))
+for (i,NSR) in enumerate(noisestimratios)
+    # @show size(reduce(hcat,NSRplot_model_data[2][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"]["vowel"]))
+    # range_data=reduce(hcat,[reduce(hcat,evoked_model_data[4][8*3+7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[19,:] for condition in Condition_keys])
+    max_ITPCs_4Hz_per_model_sorted[:,:,i]=Float64.([NSRplot_model_data[1] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[2][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[3][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[4][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[5][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[6][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[7][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[8][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[9][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs]])
+    min_ITPCs_4Hz_per_model_sorted[:,:,i]=Float64.([NSRplot_model_data[1] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[2][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[3][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[4][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[5][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[6][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[7][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[8][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[9][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs]])
+    sqr_ITPCs_4Hz_per_model_sorted[:,:,i]=Float64.([NSRplot_model_data[1] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[2][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[3][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[4][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[5][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[6][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[7][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[8][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[9][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")]])
+    raw_3_ITPCs_4Hz_per_model_sorted[:,:,i,1]=Float64.([NSRplot_model_data[1] reduce(hcat,[reduce(hcat,NSRplot_model_data[2][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[3][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[4][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[5][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[6][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[7][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[8][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[9][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2])
+    raw_3_ITPCs_4Hz_per_model_sorted[:,:,i,2]=Float64.([NSRplot_model_data[1] reduce(hcat,[reduce(hcat,NSRplot_model_data[2][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[3][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[4][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[5][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[6][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[7][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[8][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[9][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2])
+    raw_3_ITPCs_4Hz_per_model_sorted[:,:,i,3]=Float64.([NSRplot_model_data[1] reduce(hcat,[reduce(hcat,NSRplot_model_data[2][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[3][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[4][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[5][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[6][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[7][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[8][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[9][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2])
+end
+
+raw_3_ITPCs_4Hz_per_model_sorted[:,:,7,1] # this is the raw ITPCs for the 4Hz band, for the 7th NSR.
+raw_3_ITPCs_4Hz_per_model_sorted[:,:,7,2] # this is the raw ITPCs for the 4Hz band, for the 7th NSR.
+
+sqr_ITPCs_4Hz_per_model_sorted[:,:,7]
+max_ITPCs_4Hz_per_model_sorted[:,:,7]
+min_ITPCs_4Hz_per_model_sorted[:,:,7]
+
+mean4Hz_ITPC_oana_to_models=Array{Float64,2}(undef,9,length(noisestimratios)) #9 model, 8 NSRs.
+max_data_mean4Hz_ITPC_oana_to_models=Array{Float64,2}(undef,9,length(noisestimratios)) #9 model, 8 NSRs.
+min_data_mean4Hz_ITPC_oana_to_models=Array{Float64,2}(undef,9,length(noisestimratios)) #9 model, 8 NSRs.
+mean4Hz_ITPC_oana_to_models_test1=Array{Float64,2}(undef,9,length(noisestimratios)) #9 model, 8 NSRs.
+mean4Hz_ITPC_oana_to_models_test2=Array{Float64,2}(undef,9,length(noisestimratios)) #9 model, 8 NSRs.
+mean4Hz_ITPC_oana_to_models_test3=Array{Float64,2}(undef,9,length(noisestimratios)) #9 model, 8 NSRs.
+
+for (i,NSR) in enumerate(noisestimratios)
+    for j in 1:9
+        mean4Hz_ITPC_oana_to_models[j,i]=mean(sqr_ITPCs_4Hz_per_model_sorted[:,j,i])
+        max_data_mean4Hz_ITPC_oana_to_models[j,i]=mean(max_ITPCs_4Hz_per_model_sorted[:,j,i])
+        min_data_mean4Hz_ITPC_oana_to_models[j,i]=mean(min_ITPCs_4Hz_per_model_sorted[:,j,i])
+
+        mean4Hz_ITPC_oana_to_models_test1[j,i]=mean(raw_3_ITPCs_4Hz_per_model_sorted[:,j,i,1])
+        mean4Hz_ITPC_oana_to_models_test2[j,i]=mean(raw_3_ITPCs_4Hz_per_model_sorted[:,j,i,2])
+        mean4Hz_ITPC_oana_to_models_test3[j,i]=mean(raw_3_ITPCs_4Hz_per_model_sorted[:,j,i,3])
+    end
+end
+gr()
+mean4Hz_ITPC_oana_to_models #columns are NSRs, rows are models.
+max_data_mean4Hz_ITPC_oana_to_models
+min_data_mean4Hz_ITPC_oana_to_models
+@show (mean4Hz_ITPC_oana_to_models.-min_data_mean4Hz_ITPC_oana_to_models,max_data_mean4Hz_ITPC_oana_to_models.-mean4Hz_ITPC_oana_to_models)
+mean4Hz_ITPC_oana_to_models_plot=scatter(noisestimratios,mean4Hz_ITPC_oana_to_models_test1', markeralpha=0.5,label=["EEG" "NGNMM fast" "NGNMM slow" "Phase Reset" "No Phase Reset" "Evoked - env stim" "Evoked - deriv stim" "Evoked - peak env stim" "Evoked - peak rate stim"],
+    xlabel=L"\lambda",
+    # ylabel=L"\rho_c",
+    ylabel=L"\textrm{mean}\;\;4\textrm{Hz}\;\; R^2",
+    legend=:false,
+    # xticks=(noisestimratios, noisestimratios),
+    ylims=(-0.0,1.0),
+    linewidth=2,
+    markershape=symbols,
+    markersize=3,
+    # linestyle=linestyles,
+    color=[color_scheme[1] color_scheme[2] color_scheme[2] color_scheme[3] color_scheme[3] color_scheme[4] color_scheme[4] color_scheme[4] color_scheme[4]],size=(width_px/2,width_px/3))
+scatter!(mean4Hz_ITPC_oana_to_models_plot,noisestimratios,mean4Hz_ITPC_oana_to_models_test2', markeralpha=0.5,label=["EEG" "NGNMM fast" "NGNMM slow" "Phase Reset" "No Phase Reset" "Evoked - env stim" "Evoked - deriv stim" "Evoked - peak env stim" "Evoked - peak rate stim"],
+    # xlabel="NSR",
+    # ylabel="CCC",
+    legend=:false,
+    # xticks=(noisestimratios, noisestimratios),
+    # ylims=(-1.0,1.0),
+    linewidth=2,
+    markershape=symbols,
+    markersize=3,
+    # linestyle=linestyles,
+    color=[color_scheme[1] color_scheme[2] color_scheme[2] color_scheme[3] color_scheme[3] color_scheme[4] color_scheme[4] color_scheme[4] color_scheme[4]],size=(width_px/2,width_px/3))
+scatter!(mean4Hz_ITPC_oana_to_models_plot,noisestimratios,mean4Hz_ITPC_oana_to_models_test3', markeralpha=0.5,label=["EEG" "NGNMM fast" "NGNMM slow" "Phase Reset" "No Phase Reset" "Evoked - env stim" "Evoked - deriv stim" "Evoked - peak env stim" "Evoked - peak rate stim"],
+    # xlabel="NSR",
+    # ylabel="CCC",
+    legend=:false,
+    # xticks=(noisestimratios, noisestimratios),
+    # ylims=(-1.0,1.0),
+    linewidth=2,
+    markershape=symbols,
+    markersize=3,
+    # linestyle=linestyles,
+    color=[color_scheme[1] color_scheme[2] color_scheme[2] color_scheme[3] color_scheme[3] color_scheme[4] color_scheme[4] color_scheme[4] color_scheme[4]],size=(width_px/2,width_px/3))
+plot!(mean4Hz_ITPC_oana_to_models_plot,noisestimratios,mean4Hz_ITPC_oana_to_models', markeralpha=0,label=["EEG" "NGNMM fast" "NGNMM slow" "Phase Reset" "No Phase Reset" "Evoked - env stim" "Evoked - deriv stim" "Evoked - peak env stim" "Evoked - peak rate stim"],
+    # xlabel="NSR",
+    # ylabel="CCC",
+    legend=:false,
+    # xticks=(noisestimratios, noisestimratios),
+    # ylims=(-1.0,1.0),
+    linewidth=2,
+    # linestyle=linestyles,
+    markershape=symbols,
+    markersize=3,
+
+    # linestyle=linestyles,
+    color=[color_scheme[1] color_scheme[2] color_scheme[2] color_scheme[3] color_scheme[3] color_scheme[4] color_scheme[4] color_scheme[4] color_scheme[4]],size=(width_px/2,width_px/3))
+
+
+mock_plot_for_legend_1=plot(abs.(mean4Hz_ITPC_oana_to_models[1:5,:])'.*0.0, label=["EEG" "NGNMM fast" "NGNMM slow" "Phase Reset" "No Phase Reset"],
+    xlabel="",
+    grid=false,
+    axis=false,
+    yaxis=false,
+    ylabel="",
+    legend=:top,
+    ylims=(0.9,1.0),
+    linewidth=2,
+    markershape=permutedims(symbols[1:5]),
+    markersize=3,
+    # linestyle=permutedims(linestyles[1,1:5]),
+    color=[color_scheme[1] color_scheme[2] color_scheme[2] color_scheme[3] color_scheme[3]],size=(width_px/2,width_px/3))   
+mock_plot_for_legend_2=plot(abs.(mean4Hz_ITPC_oana_to_models[6:9,:])'.*0.0, label=["Evoked - env stim" "Evoked - deriv stim" "Evoked - peak env stim" "Evoked - peak rate stim"],
+    xlabel="",
+    grid=false,
+    axis=false,
+    yaxis=false,
+    ylabel="",
+    legend=:top,
+    ylims=(0.9,1.0),
+    linewidth=2,
+    markershape=permutedims(symbols[1,6:9]),
+    markersize=3,
+    # linestyle=permutedims(linestyles[1,6:9]),
+    color=[color_scheme[4] color_scheme[4] color_scheme[4] color_scheme[4]],size=(width_px/2,width_px/3))  
+
+
+
+l = @layout [
+    a{0.7h}; [ b{0.2h} c{0.2h} ]
+]   
+
+plot(mean4Hz_ITPC_oana_to_models_plot, mock_plot_for_legend_1,mock_plot_for_legend_2,
+    layout=l,size=(width_px/2,width_px/3),
+)
+
+#savefig
+tosave=plot(mean4Hz_ITPC_oana_to_models_plot, mock_plot_for_legend_1,mock_plot_for_legend_2,
+    layout=l,size=(width_px/2,width_px/3),
+)
+width, height = tosave.attr[:size]
+Plots.prepare_output(tosave)
+PlotlyJS.savefig(Plots.plotlyjs_syncplot(tosave),"./ppaper_varynsr_mean4Hz_ITPC_v2.pdf",width=Int64(ceil(width)), height=Int64(ceil(height)))
+# savefig(tosave,"./ppaper_varynsr_mean4Hz_ITPC_0_1_yrange.pdf")
+savefig(tosave,"./ppaper_varynsr_mean_ITPC_0_1_yrange_v2.pdf")
 
 
 ###############################
 ###############################
 ###############################
-#now plotting the effect of drive strength on the two NGNMM models that it was varied for. Same as we did for the noisestimratios but for the driveamplituderatios.
+#now plotting the effect of drive strength on the two NGNMM models' mean 4Hz ITPCs across phonemes. Same as we did for the noisestimratios but for the driveamplituderatios.
 ###############################
 ###############################
 ###############################
@@ -962,20 +1138,20 @@ end
 plot(drive_strength_plot..., layout=(1,6),size=(width_px*3,width_px))
 
 
-concordance_drive_strength=Array{Float64,2}(undef,length(driveamplituderatios),3) # 3 models, 8 driveamplituderatios
-#concordance for each test
-concordance_drive_strength_test1=Array{Float64,2}(undef,length(driveamplituderatios),3) # 3 models, 8 driveamplituderatios
-concordance_drive_strength_test2=Array{Float64,2}(undef,length(driveamplituderatios),3) # 3 models, 8 driveamplituderatios
-concordance_drive_strength_test3=Array{Float64,2}(undef,length(driveamplituderatios),3) # 3 models, 8 driveamplituderatios
+mean4Hz_ITPC_drive_strength=Array{Float64,2}(undef,length(driveamplituderatios),3) # 3 models, 8 driveamplituderatios
+#mean4Hz_ITPC for each test
+mean4Hz_ITPC_drive_strength_test1=Array{Float64,2}(undef,length(driveamplituderatios),3) # 3 models, 8 driveamplituderatios
+mean4Hz_ITPC_drive_strength_test2=Array{Float64,2}(undef,length(driveamplituderatios),3) # 3 models, 8 driveamplituderatios
+mean4Hz_ITPC_drive_strength_test3=Array{Float64,2}(undef,length(driveamplituderatios),3) # 3 models, 8 driveamplituderatios
 for (i,driveamplituderatio) in enumerate(driveamplituderatios)
     for j in 1:3
-        concordance_drive_strength[i,j]=get_concordance_correlation_coefficient(drive_strength_plot_model_ITPCs[:,i,1],drive_strength_plot_model_ITPCs[:,i,j])
-        concordance_drive_strength_test1[i,j]=get_concordance_correlation_coefficient(raw_3_drive_strength_model_ITPCs[:,i,1,1],raw_3_drive_strength_model_ITPCs[:,i,j,1])
-        concordance_drive_strength_test2[i,j]=get_concordance_correlation_coefficient(raw_3_drive_strength_model_ITPCs[:,i,1,2],raw_3_drive_strength_model_ITPCs[:,i,j,2])
-        concordance_drive_strength_test3[i,j]=get_concordance_correlation_coefficient(raw_3_drive_strength_model_ITPCs[:,i,1,3],raw_3_drive_strength_model_ITPCs[:,i,j,3])
+        mean4Hz_ITPC_drive_strength[i,j]=mean(drive_strength_plot_model_ITPCs[:,i,j])
+        mean4Hz_ITPC_drive_strength_test1[i,j]=mean(raw_3_drive_strength_model_ITPCs[:,i,j,1])
+        mean4Hz_ITPC_drive_strength_test2[i,j]=mean(raw_3_drive_strength_model_ITPCs[:,i,j,2])
+        mean4Hz_ITPC_drive_strength_test3[i,j]=mean(raw_3_drive_strength_model_ITPCs[:,i,j,3])
     end
 end
-DAR_concordanceplot=scatter(driveamplituderatios,concordance_drive_strength_test1, markeralpha=0.5,
+DAR_mean4Hz_ITPCplot=scatter(driveamplituderatios,mean4Hz_ITPC_drive_strength_test1, markeralpha=0.5,
     xlabel=L"D",
     # ylabel=L"\rho_c",
     ylabel=L"\textrm{mean}\;\;4\textrm{Hz}\;\;R^2",
@@ -986,7 +1162,7 @@ DAR_concordanceplot=scatter(driveamplituderatios,concordance_drive_strength_test
     markershape=symbols,
     markersize=3,
     color=[color_scheme[1] color_scheme[2] color_scheme[2]],size=(width_px/2,width_px/3))
-scatter!(DAR_concordanceplot,driveamplituderatios,concordance_drive_strength_test2, markeralpha=0.5,
+scatter!(DAR_mean4Hz_ITPCplot,driveamplituderatios,mean4Hz_ITPC_drive_strength_test2, markeralpha=0.5,
     # xlabel="drive amplitude ratio",
     # ylabel="CCC",
     legend=:false,
@@ -996,7 +1172,7 @@ scatter!(DAR_concordanceplot,driveamplituderatios,concordance_drive_strength_tes
     markershape=symbols,
     markersize=3,
     color=[color_scheme[1] color_scheme[2] color_scheme[2]],size=(width_px/2,width_px/3))
-scatter!(DAR_concordanceplot,driveamplituderatios,concordance_drive_strength_test3, markeralpha=0.5,
+scatter!(DAR_mean4Hz_ITPCplot,driveamplituderatios,mean4Hz_ITPC_drive_strength_test3, markeralpha=0.5,
     # xlabel="drive amplitude ratio",
     # ylabel="CCC",
     legend=:false,
@@ -1007,7 +1183,7 @@ scatter!(DAR_concordanceplot,driveamplituderatios,concordance_drive_strength_tes
     markersize=3,
     color=[color_scheme[1] color_scheme[2] color_scheme[2]],size=(width_px/2,width_px/3))
 
-plot!(DAR_concordanceplot,driveamplituderatios,concordance_drive_strength,
+plot!(DAR_mean4Hz_ITPCplot,driveamplituderatios,mean4Hz_ITPC_drive_strength,
     # xlabel="DAR",
     # ylabel="CCC",
     legend=:topright,
@@ -1023,10 +1199,10 @@ plot!(DAR_concordanceplot,driveamplituderatios,concordance_drive_strength,
     size=(width_px/2,width_px/3))
 
 #save figure:
-tosave=DAR_concordanceplot
+tosave=DAR_mean4Hz_ITPCplot
 width, height = tosave.attr[:size]
 Plots.prepare_output(tosave)
-PlotlyJS.savefig(Plots.plotlyjs_syncplot(tosave),"./ppaper_drivestrength_concordance.pdf",width=Int64(ceil(width)), height=Int64(ceil(height)))
-# savefig(tosave,"./ppaper_drivestrength_concordance_fixedlabels.pdf")
+PlotlyJS.savefig(Plots.plotlyjs_syncplot(tosave),"./ppaper_drivestrength_mean4Hz_ITPC.pdf",width=Int64(ceil(width)), height=Int64(ceil(height)))
+# savefig(tosave,"./ppaper_drivestrength_mean4Hz_ITPC_fixedlabels.pdf")
 savefig(tosave,"./ppaper_drivestrength_mean_ITPC_fixedlabels.pdf")
 
