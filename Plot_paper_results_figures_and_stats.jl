@@ -32,7 +32,7 @@ end
 
 
 #control case data
-oscillator_path="./Results/Phase_Reset Model/"
+oscillator_path="./Results/Phase_Reset_Model/"
 phase_reset_data=Vector{Any}()
 for DAR in driveamplituderatios[1]
     for NSR in noisestimratios
@@ -137,16 +137,16 @@ for (i,DAR) in enumerate(driveamplituderatios)
             this_dar_array[6,j,:]=reduce(hcat,[mean(x->x.^2,nophasereset_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
 
             if DAR<1.0
-                this_dar_array[7,j,:]=reduce(hcat,[mean(x->x.^2,evoked_derivativestim_data[8*(i-1)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[8,j,:]=reduce(hcat,[mean(x->x.^2,evoked_envelopestim_data[8*(i-1)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[9,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakenvstim_data[8*(i-1)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[10,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakratestim_data[8*(i-1)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[7,j,:]=reduce(hcat,[mean(x->x.^2,evoked_derivativestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[8,j,:]=reduce(hcat,[mean(x->x.^2,evoked_envelopestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[9,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakenvstim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[10,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakratestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
 
             else
-                this_dar_array[7,j,:]=reduce(hcat,[mean(x->x.^2,evoked_derivativestim_data[8*(i)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[8,j,:]=reduce(hcat,[mean(x->x.^2,evoked_envelopestim_data[8*(i)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[9,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakenvstim_data[8*(i)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[10,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakratestim_data[8*(i)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[7,j,:]=reduce(hcat,[mean(x->x.^2,evoked_derivativestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[8,j,:]=reduce(hcat,[mean(x->x.^2,evoked_envelopestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[9,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakenvstim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[10,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakratestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
 
             end
             this_dar_array[11,j,:]=sorted_oana_ITPCs[:]
@@ -158,16 +158,16 @@ for (i,DAR) in enumerate(driveamplituderatios)
             this_dar_array[6,j,:]=reduce(hcat,[mean(x->x.^2,nophasereset_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
 
          if DAR<1.0
-                this_dar_array[7,j,:]=reduce(hcat,[mean(x->x.^2,evoked_derivativestim_data[8*(i-1)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[8,j,:]=reduce(hcat,[mean(x->x.^2,evoked_envelopestim_data[8*(i-1)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[9,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakenvstim_data[8*(i-1)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[10,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakratestim_data[8*(i-1)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[7,j,:]=reduce(hcat,[mean(x->x.^2,evoked_derivativestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[8,j,:]=reduce(hcat,[mean(x->x.^2,evoked_envelopestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[9,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakenvstim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[10,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakratestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
 
             else
-                this_dar_array[7,j,:]=reduce(hcat,[mean(x->x.^2,evoked_derivativestim_data[8*(i)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[8,j,:]=reduce(hcat,[mean(x->x.^2,evoked_envelopestim_data[8*(i)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[9,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakenvstim_data[8*(i)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[10,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakratestim_data[8*(i)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[7,j,:]=reduce(hcat,[mean(x->x.^2,evoked_derivativestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[8,j,:]=reduce(hcat,[mean(x->x.^2,evoked_envelopestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[9,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakenvstim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[10,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakratestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
 
             end
             this_dar_array[11,j,:]=sorted_oana_ITPCs[:]
@@ -212,7 +212,7 @@ fourHzITPCS=Vector{Array{Float64,3}}()
 sorting_indxs=get_sorting_indices("./")
 
 for (i,DAR) in enumerate(driveamplituderatios)
-    this_dar_array=Array{Float64,3}(undef,20,8,15) #5 models, 8 NSRs, 15 conditions
+    this_dar_array=Array{Float64,3}(undef,11,8,15) #11 models, 8 NSRs, 15 conditions
     for (j,NSR) in enumerate(noisestimratios)
         #phase reset models and evoked model have constant DAR.
         if NSR==0.05
@@ -221,20 +221,20 @@ for (i,DAR) in enumerate(driveamplituderatios)
             this_dar_array[2,j,:]=reduce(hcat,[mean(x->x.^2,Aine_data[8*(i-1)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
             this_dar_array[3,j,:]=reduce(hcat,[mean(x->x.^2,phase_reset_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
             this_dar_array[6,j,:]=reduce(hcat,[mean(x->x.^2,nophasereset_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-            this_dar_array[2,j,:]=Aine_data[8*(i-1)+j][1]["noisestimratio: $NSR"]["sortedITPCS_t2PD"][1]
-            this_dar_array[3,j,:]=phase_reset_data[j][1]["noisestimratio: $NSR"]["sortedITPCS_t2PD"][1]
-            this_dar_array[6,j,:]=nophasereset_data[j][1]["noisestimratio: $NSR"]["sortedITPCS_t2PD"][1]
+            # this_dar_array[2,j,:]=Aine_data[8*(i-1)+j][1]["noisestimratio: $NSR"]["sortedITPCS_t2PD"][1]
+            # this_dar_array[3,j,:]=phase_reset_data[j][1]["noisestimratio: $NSR"]["sortedITPCS_t2PD"][1]
+            # this_dar_array[6,j,:]=nophasereset_data[j][1]["noisestimratio: $NSR"]["sortedITPCS_t2PD"][1]
             if DAR<1.0
-                this_dar_array[7,j,:]=reduce(hcat,[mean(x->x.^2,evoked_derivativestim_data[8*(i-1)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[8,j,:]=reduce(hcat,[mean(x->x.^2,evoked_envelopestim_data[8*(i-1)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[9,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakenvstim_data[8*(i-1)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[10,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakratestim_data[8*(i-1)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[7,j,:]=reduce(hcat,[mean(x->x.^2,evoked_derivativestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[8,j,:]=reduce(hcat,[mean(x->x.^2,evoked_envelopestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[9,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakenvstim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[10,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakratestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
 
             else
-                this_dar_array[7,j,:]=reduce(hcat,[mean(x->x.^2,evoked_derivativestim_data[8*(i)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[8,j,:]=reduce(hcat,[mean(x->x.^2,evoked_envelopestim_data[8*(i)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[9,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakenvstim_data[8*(i)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[10,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakratestim_data[8*(i)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[7,j,:]=reduce(hcat,[mean(x->x.^2,evoked_derivativestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[8,j,:]=reduce(hcat,[mean(x->x.^2,evoked_envelopestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[9,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakenvstim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[10,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakratestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
 
             end
             this_dar_array[11,j,:]=sorted_oana_ITPCs[:]
@@ -246,17 +246,17 @@ for (i,DAR) in enumerate(driveamplituderatios)
             this_dar_array[6,j,:]=reduce(hcat,[mean(x->x.^2,nophasereset_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
 
          if DAR<1.0
-                this_dar_array[7,j,:]=reduce(hcat,[mean(x->x.^2,evoked_derivativestim_data[8*(i-1)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[8,j,:]=reduce(hcat,[mean(x->x.^2,evoked_envelopestim_data[8*(i-1)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[9,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakenvstim_data[8*(i-1)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[10,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakratestim_data[8*(i-1)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[7,j,:]=reduce(hcat,[mean(x->x.^2,evoked_derivativestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[8,j,:]=reduce(hcat,[mean(x->x.^2,evoked_envelopestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[9,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakenvstim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[10,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakratestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
 
 
             else
-                this_dar_array[7,j,:]=reduce(hcat,[mean(x->x.^2,evoked_derivativestim_data[8*(i)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[8,j,:]=reduce(hcat,[mean(x->x.^2,evoked_envelopestim_data[8*(i)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[9,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakenvstim_data[8*(i)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
-                this_dar_array[10,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakratestim_data[8*(i)+j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[7,j,:]=reduce(hcat,[mean(x->x.^2,evoked_derivativestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[8,j,:]=reduce(hcat,[mean(x->x.^2,evoked_envelopestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[9,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakenvstim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
+                this_dar_array[10,j,:]=reduce(hcat,[mean(x->x.^2,evoked_peakratestim_data[j][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19] for condition in Condition_keys])
 
 
             end
@@ -280,20 +280,17 @@ labels=["NGNMM slow" "NGNMM fast" "EEG"]
 #marker styles for the scatter plots
 markerstyles=[:circle :utriangle :square]# :star :diamond :hexagon :star :square :circle :dtriangle :utriangle :dtriangle]
 # for color bars
-#marker alpha decreases for decreasing DAR
+#marker alpha decreases for decreasing DAR?
 driveamplituderatios
 log_driveamplituderatios_scaled_to_0_0p1_for_transparency=(log.(driveamplituderatios) .- minimum(log.(driveamplituderatios)))./(maximum(log.(driveamplituderatios))-minimum(log.(driveamplituderatios))).*0.9 .+0.1
-markeralphas=log_driveamplituderatios_scaled_to_0_0p1_for_transparency#reverse([1.0,0.8,0.6,0.5,0.3,0.2])
+markeralphas=log_driveamplituderatios_scaled_to_0_0p1_for_transparency
 
 using ColorSchemes
 blues=[(0,0,1.0,markeralphas[1]),(0,0,1.0,markeralphas[2]),(0,0,1.0,markeralphas[3]),(0,0,1.0,markeralphas[4]),(0,0,1.0,markeralphas[5]),(0,0,1.0,markeralphas[6])]
 orange=[(1.0,165/255,0,markeralphas[1]),(1.0,165/255,0,markeralphas[2]),(1.0,165/255,0,markeralphas[3]),(1.0,165/255,0,markeralphas[4]),(1.0,165/255,0,markeralphas[5]),(1.0,165/255,0,markeralphas[6])]
 using Colors
-# color_scheme_blue=ColorScheme([Colors.RGBA(col...) for col in blues],"blue transparancy modulated")
 color_scheme_blue=[Colors.RGBA(col...) for col in blues]
-# color_scheme_orange=ColorScheme([Colors.RGBA(col...) for col in orange],"orange transparancy modulated")
 color_scheme_orange=[Colors.RGBA(col...) for col in orange]
-# color_scheme_black=ColorScheme([Colors.RGBA(0,0,0,1.0) for i in 1:6],"black")
 color_scheme_black=[Colors.RGBA(0,0,0,1.0) for i in 1:6]
 
 
@@ -363,12 +360,13 @@ savefig(tosave,"./ppaper_NGNMM_EEG_ITPCs_vs_t2pd_across_NSRs_seriesDAR_bluebar.p
 savefig(tosave,"./ppaper_NGNMM_EEG_ITPCs_vs_t2pd_across_NSRs_seriesDAR_orangebar.pdf")
 
 ########################
-
 #plot the 4HzITPC vs t2pd for each DAR for each NSR
 # for d in 1:length(driveamplituderatios)
 for d in 1
     display(scatter(scatter_ITPC_vs_t2pd_plots[d,:]...,layout=(2,4),ylims=(0.0,1.0),size=(1200,1200),xlabel=L"L\textrm{~(ms)}",ylabel=L"4\textrm{Hz}~~R^2",plot_title=L"D="*"$(driveamplituderatios[d])",legend=:topright))
 end
+
+
 ########################
 ########################
 ########################
@@ -473,15 +471,6 @@ for m in 1:length(models)
     end
 end
 
-
-statistics
-
-#check against main results, D=12.2, NSR=0.9, 
-driveamplituderatios
-noisestimratios
-statistics[:,7,4,:]
-#differed slightly but only due to exclusion of EEG in FDR correction, this is the right way to do it.
-#export to csv for SI table one for each model. only NGNMM models have varying DAR. leave out of the others.
 using CSV, DataFrames
 df_NGNMM_slow=DataFrame(Model=String[],NSR=Float64[],DAR=Float64[],r=Float64[],CI_lower=Float64[],CI_upper=Float64[],p=Float64[],p_bonferroni=Float64[],p_FDR=Float64[])
 for n in 1:length(noisestimratios)
@@ -542,35 +531,28 @@ Condition_keys=["vowel","b","d","g","k","p","t","m","n","s","z","l","r","f","v"]
 
 time2pds=Frequency_varied_phasereset_data[1][1]["noisestimratio: 0.1"]["sortedITPCS_t2PD"][4]
 fourHzITPCS=Vector{Array{Float64,3}}()
-model_data=[C0066D025_data, Aine_data, phase_reset_data, rectified_phasereset_data, evoked_model_data, nophasereset_data, evoked_derivativestim_data, evoked_envelopestim_data, evoked_peakenvstim_data, evoked_peakratestim_data];
+model_data=[C0066D025_data, Aine_data, phase_reset_data, nophasereset_data, evoked_derivativestim_data, evoked_envelopestim_data, evoked_peakenvstim_data, evoked_peakratestim_data];
 experimental_plot=plot()
-# scatter!(experimental_plot, time2pds, sorted_oana_ITPCs[:], label="EEG", xlabel="", ylabel="ITPC 4Hz", linewidth=2,color=color_scheme[1],ylims=(0.0,0.31),smooth=true,markerstrokewidth=1,legend=false)
 scatter!(experimental_plot, time2pds, sorted_oana_ITPCs[:], label="EEG", xlabel="", ylabel=L"4\textrm{Hz}~~R^2", linewidth=2,color=color_scheme[1],ylims=(0.0,0.31),smooth=true,markerstrokewidth=1,legend=true)
 this_dar_array=Array{Float64,2}(undef,10,15) #4 models, 15 conditions
 sorting_indxs=get_sorting_indices("./")
 ngnmm_lables=["NGNMM slow", "NGNMM fast"]
 NGNMM_plot=plot()
 for (i,model) in enumerate(model_data[1:2])
-    # this_dar_array[i,:]=model[8*3+7][1]["noisestimratio: 0.9"]["sortedITPCS_t2PD"][1]
     this_dar_array[i,:]=reduce(hcat,[mean(x->x.^2,model[8*3+7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[19] for condition in Condition_keys])'
     range_data=reduce(hcat,[reduce(hcat,model[8*3+7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[19,:] for condition in Condition_keys])
     @show size(range_data)
     upper_bounds=maximum(x->x^2,range_data,dims=1)[sorting_indxs]
     @show upper_bounds
     lower_bounds=minimum(x->x^2,range_data,dims=1)[sorting_indxs]
-
-    # scatter!(NGNMM_plot, time2pds, this_dar_array[i,:].^2, label=ngnmm_lables[i], linewidth=2, color=color_scheme[2], smooth=true, markerstrokewidth=1,markershape=symbols[i],linestyle=linestyles[i],ylims=(0.0,0.55),legend=false)
     scatter!(NGNMM_plot, time2pds, this_dar_array[i,sorting_indxs], yerror=(this_dar_array[i,sorting_indxs]-lower_bounds,upper_bounds.-this_dar_array[i,sorting_indxs]),label=ngnmm_lables[i], linewidth=2, color=color_scheme[2], smooth=true, markerstrokewidth=1,markershape=symbols[i],linestyle=linestyles[i],ylims=(0.0,0.3),legend=true)
 end
 display(NGNMM_plot)
 
 phase_reset_plot=plot()
-# labels_pr=["Phase reset", "Rectified phase reset", "No phase reset"]
 labels_pr=["Phase reset",  "No phase reset"]
-# idxs=[3,4,6] #indices of phase reset models in model_data
 idxs=[3,6] #indices of phase reset models in model_data
-for (i,model) in enumerate(model_data[[3,6]])
-    # this_dar_array[idxs[i],:]=model[7][1]["noisestimratio: 0.9"]["sortedITPCS_t2PD"][1]
+for (i,model) in enumerate(model_data[[3,4]])
     this_dar_array[idxs[i],:]=reduce(hcat,[mean(x->x.^2,model[7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[19] for condition in Condition_keys])'
     range_data=reduce(hcat,[reduce(hcat,model[7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[19,:] for condition in Condition_keys])
     @show size(range_data)
@@ -580,13 +562,10 @@ for (i,model) in enumerate(model_data[[3,6]])
     @show lower_bounds
 
     scatter!(phase_reset_plot, time2pds, this_dar_array[idxs[i],sorting_indxs], yerr=(this_dar_array[idxs[i],sorting_indxs]-lower_bounds,upper_bounds.-this_dar_array[idxs[i],sorting_indxs]),label=labels_pr[i],xlabel="L (s)", linewidth=2, color=color_scheme[3], smooth=true, markerstrokewidth=1,markershape=symbols[i],linestyle=linestyles[i],ylims=(0.0,0.4),legend=true)
-    # scatter!(phase_reset_plot, time2pds, this_dar_array[idxs[i],:].^2, label=labels_pr[i],xlabel="Latency to\n peak derivative (s)", linewidth=2, color=color_scheme[3],ylabel="ITPC 4Hz", smooth=true, markerstrokewidth=1,markershape=symbols[i],linestyle=linestyles[i],ylims=(0.0,0.4),legend=false)
 end
 display(phase_reset_plot)
 #saving:
-using Plots
-gr()
-# q=plot((experimental_plot, NGNMM_plot, phase_reset_plot, )..., layout=(1,3), size=(width_px*8.5,width_px*2.3),ylims=(0.0,0.3001), xlabel="L (s)", legend_font_halign=:right,bottom_margin=10.0Plots.mm,right_margin=0.5Plots.mm,left_margin=8Plots.mm)
+
 q=plot((experimental_plot, NGNMM_plot, phase_reset_plot, )..., layout=(1,3), size=(width_px,width_px/3),ylims=(0.0,0.3001), xlabel=L"L\textrm{~(ms)}", legend_font_halign=:right,bottom_margin=10.0Plots.mm,right_margin=0.5Plots.mm,left_margin=8Plots.mm)
 
 tosave=q
@@ -622,16 +601,16 @@ for (i,model) in enumerate(evoked_model_data)
     end
     # scatter!(evoked_model_plot, time2pds, this_dar_array[idxs[i],:].^2, label=labels_evkd[i], linewidth=2, xlabel="Latency to\n peak derivative (s)",color=color_scheme[4], smooth=true, markerstrokewidth=1,markershape=symbols[i],linestyle=linestyles[i],ylims=(0.0,0.55),legend=false)
 
-    this_dar_array[idxs[i],:]=reduce(hcat,[mean(x->x.^2,model[8*3+7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[19] for condition in Condition_keys])'
-    range_data=reduce(hcat,[reduce(hcat,model[8*3+7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[19,:] for condition in Condition_keys])
+    this_dar_array[idxs[i],:]=reduce(hcat,[mean(x->x.^2,model[7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[19] for condition in Condition_keys])'
+    range_data=reduce(hcat,[reduce(hcat,model[7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[19,:] for condition in Condition_keys])
     @show size(range_data)
     upper_bounds=maximum(x->x^2,range_data,dims=1)[sorting_indxs]
     @show upper_bounds
     lower_bounds=minimum(x->x^2,range_data,dims=1)[sorting_indxs]
     @show lower_bounds  
     if i==3 #plot both peak rate and peakenv in the same plot
-        this_dar_array[4,:]=reduce(hcat,[mean(x->x.^2,evoked_model_data[4][8*3+7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[19] for condition in Condition_keys])'
-        fourth_range_data=reduce(hcat,[reduce(hcat,evoked_model_data[4][8*3+7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[19,:] for condition in Condition_keys])
+        this_dar_array[4,:]=reduce(hcat,[mean(x->x.^2,evoked_model_data[4][7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[19] for condition in Condition_keys])'
+        fourth_range_data=reduce(hcat,[reduce(hcat,evoked_model_data[4][7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[19,:] for condition in Condition_keys])
         fourth_upper_bounds=maximum(x->x^2,fourth_range_data,dims=1)[sorting_indxs]
         fourth_lower_bounds=minimum(x->x^2,fourth_range_data,dims=1)[sorting_indxs]
 
@@ -664,7 +643,6 @@ Plots.prepare_output(tosave)
 savefig(tosave,"./ppaper_combined_main_results.pdf")
 
 
-
 ##############################
 ##############################
 ##############################
@@ -677,7 +655,7 @@ time2pds=Frequency_varied_phasereset_data[1][1]["noisestimratio: 0.1"]["sortedIT
 model_data_select=[sorted_oana_ITPCs, C0066D025_data, phase_reset_data,  evoked_derivativestim_data]
 model_lables=["EEG" "Slow NGNMM" "Phase Reset"  "Evoked - derivative stim"]
 Condition_keys=["vowel","b","d","g","k","p","t","m","n","s","z","l","r","f","v"]
-ITPCs_4Hz_per_model_sorted=Float64.([model_data_select[1] reduce(hcat,[mean(x->x.^2,model_data_select[2][8*(4-1)+7][1]["noisestimratio: 0.9"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,model_data_select[3][8*(1-1)+7][1]["noisestimratio: 0.9"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,model_data_select[4][8*(3-1)+7][1]["noisestimratio: 0.9"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")]])
+ITPCs_4Hz_per_model_sorted=Float64.([model_data_select[1] reduce(hcat,[mean(x->x.^2,model_data_select[2][8*(4-1)+7][1]["noisestimratio: 0.9"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,model_data_select[3][8*(1-1)+7][1]["noisestimratio: 0.9"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,model_data_select[4][7][1]["noisestimratio: 0.9"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")]])
 
 scatter(time2pds,ITPCs_4Hz_per_model_sorted[:,1],label="EEG",xlabel="Phoneme",ylabel="4Hz ITPC",legend=:outertopright,ylims=(0.0,0.3),markershape=:circle,markercolor=color_scheme[1],linewidth=2)
 for i in 2:4
@@ -708,7 +686,7 @@ end
 display(plot!(size=(width_px,width_px),xticks=(1:15,Condition_keys),markerstrokewidth=0.5))
 
 display(plot!(grid=true))
-#resort the data so it is grouped by phoneme type:
+#re-sort the data so it is grouped by phoneme type:
 #group identities: 1:vowel, 2:voiced-stops, 3:unvoiced-stops, 4:nasals, 5:sibilants, 6:liquidsm 7:frivatives
 phoneme_groups=[2,4,4,2,1,6,2,3,3,3,6,7,5,7,5]
 Condition_keys=Condition_keys
@@ -726,6 +704,7 @@ phoneme_colors=[2,4,4,2,1,6,2,3,3,3,6,7,5,7,5]
 sorted_phoneme_colors=plot_colors[phoneme_colors]
 grouped_phoneme_colors=sorted_phoneme_colors[sortingIndexes]
 sorted_conditions=Condition_keys[sortingIndexes]
+#### add vspan shaded regions for each phoneme group:
 for i in 1:15
     vspan!([i-0.5,i+0.5], color=grouped_phoneme_colors[i], alpha=0.4, label="")
 end
@@ -736,11 +715,6 @@ end
 display(plot!(size=(width_px/2,width_px/3),xticks=(1:15,Condition_keys),markerstrokewidth=0.5))
 
 display(plot!(grid=true))
-
-
-gr()
-#### add vspan shaded regions for each phoneme group:
-
 display(plot!())
 x=plot!()
 tosave=x
@@ -758,7 +732,7 @@ savefig(tosave,"./ppaper_ITPC_scatter_phonemex.pdf")
 ##############
 ##############
 ##############
-
+symbols_varyfreq=[:circle :cross :diamond :hexagon :octagon :square :x :utriangle :dtriangle :star]
 Frequency_varied_phasereset_sqrITPCs=Array{Float64,2}(undef,length(Frequencies[1:2:end]),15) #frequencies, 15 conditions
 raw3_freq_varied_phasereset_sqrITPCs=Array{Float64,3}(undef,length(Frequencies[1:2:end]),15,3) #frequencies, 15 conditions, 3 raw ITPCs.
 for (fidx,Freq) in enumerate(Frequencies[1:2:end])
@@ -778,10 +752,10 @@ for (midx,modulation) in enumerate(modulations)
     raw3_modulated_nonrectified_ITPCs[midx,:,3]=reduce(hcat,[reduce(hcat,modulated_nonrectified_data[midx][1]["noisestimratio: $(0.1)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2
 end
 time2pds=modulated_nonrectified_data[1][1]["noisestimratio: 0.1"]["sortedITPCS_t2PD"][4]
-labels=reshape(string.(modulations),1,11)
+# labels=reshape(string.(modulations),1,11)
 #add "m =" to labels
-labels=["m = "*i for i in labels]
-vary_mod_plot=scatter(time2pds,modulated_nonrectified_ITPCs',size=(width_px,width_px/2),label=labels,xlabel="latency to peak derivative (s)",ylabel="ITPC",markershape=symbols_varyfreq,color_palette=color_scheme,legend=:outertopright,ylims=(0.0,1.0))
+# labels=["m = "*i for i in labels]
+# vary_mod_plot=scatter(time2pds,modulated_nonrectified_ITPCs',size=(width_px,width_px/2),label=labels,xlabel="latency to peak derivative (s)",ylabel="ITPC",markershape=symbols_varyfreq,color_palette=color_scheme,legend=:outertopright,ylims=(0.0,1.0))
 
 raw3_modulated_nonrectified_ITPCs[:,:,1]
 #plot mean ITPC across conditions.
@@ -875,9 +849,6 @@ scatter!(frequencyplot,Frequencies[1:2:end],mean(raw3_freq_varied_phasereset_sqr
     markeralpha=0.5,
     color=color_scheme[3])      
 
-
-
-
 plot!(frequencyplot,Frequencies[1:2:end],mean(Frequency_varied_phasereset_sqrITPCs,dims=2),
     xlabel="frequency (Hz)",
     ylabel=L"\textrm{mean}~~4\textrm{Hz}~~R^2",
@@ -933,26 +904,19 @@ inches_per_points = 1/72.27
 width_inches = width_pts *inches_per_points
 width_px= width_inches*72.27  # or  width_inches*DPI.. /2 as two square plots per column approx.
 
-
 NSRplot_model_data=[sorted_oana_ITPCs, Aine_data, C0066D025_data, phase_reset_data, nophasereset_data,  evoked_envelopestim_data,evoked_derivativestim_data,evoked_peakenvstim_data,evoked_peakratestim_data];
 Condition_keys=["vowel","b","d","g","k","p","t","m","n","s","z","l","r","f","v"]
 sqr_ITPCs_4Hz_per_model_sorted=Array{Float64,3}(undef, 15,9,length(noisestimratios))
 max_ITPCs_4Hz_per_model_sorted=Array{Float64,3}(undef, 15,9,length(noisestimratios)) # to store the max ITPCs for each model and NSR.
 min_ITPCs_4Hz_per_model_sorted=Array{Float64,3}(undef, 15,9,length(noisestimratios)) # to store the min ITPCs for each model and NSR.
 raw_3_ITPCs_4Hz_per_model_sorted=Array{Float64,4}(undef, 15,9,length(noisestimratios),3) # to store the raw ITPCs for each model and NSR.
-# scatter(time2pds,reduce(hcat,[reduce(hcat,NSRplot_model_data[2][8*(4-1)+7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2)
-# scatter!(time2pds,reduce(hcat,[reduce(hcat,NSRplot_model_data[2][8*(4-1)+7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2)
-# scatter!(time2pds,reduce(hcat,[reduce(hcat,NSRplot_model_data[2][8*(4-1)+7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2)
-# scatter!(time2pds,sqr_ITPCs_4Hz_per_model_sorted[:,2,7],ylims=(0,0.3))
 for (i,NSR) in enumerate(noisestimratios)
-    # @show size(reduce(hcat,NSRplot_model_data[2][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"]["vowel"]))
-    # range_data=reduce(hcat,[reduce(hcat,evoked_model_data[4][8*3+7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[19,:] for condition in Condition_keys])
-    max_ITPCs_4Hz_per_model_sorted[:,:,i]=Float64.([NSRplot_model_data[1] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[2][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[3][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[4][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[5][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[6][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[7][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[8][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[9][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs]])
-    min_ITPCs_4Hz_per_model_sorted[:,:,i]=Float64.([NSRplot_model_data[1] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[2][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[3][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[4][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[5][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[6][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[7][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[8][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[9][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs]])
-    sqr_ITPCs_4Hz_per_model_sorted[:,:,i]=Float64.([NSRplot_model_data[1] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[2][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[3][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[4][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[5][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[6][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[7][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[8][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[9][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")]])
-    raw_3_ITPCs_4Hz_per_model_sorted[:,:,i,1]=Float64.([NSRplot_model_data[1] reduce(hcat,[reduce(hcat,NSRplot_model_data[2][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[3][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[4][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[5][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[6][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[7][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[8][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[9][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2])
-    raw_3_ITPCs_4Hz_per_model_sorted[:,:,i,2]=Float64.([NSRplot_model_data[1] reduce(hcat,[reduce(hcat,NSRplot_model_data[2][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[3][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[4][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[5][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[6][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[7][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[8][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[9][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2])
-    raw_3_ITPCs_4Hz_per_model_sorted[:,:,i,3]=Float64.([NSRplot_model_data[1] reduce(hcat,[reduce(hcat,NSRplot_model_data[2][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[3][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[4][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[5][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[6][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[7][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[8][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[9][8*(3-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2])
+    max_ITPCs_4Hz_per_model_sorted[:,:,i]=Float64.([NSRplot_model_data[1] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[2][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[3][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[4][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[5][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[6][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[7][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[8][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] maximum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[9][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs]])
+    min_ITPCs_4Hz_per_model_sorted[:,:,i]=Float64.([NSRplot_model_data[1] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[2][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[3][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[4][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[5][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[6][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[7][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[8][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs] minimum(x->x^2,reduce(hcat,[reduce(hcat,NSRplot_model_data[9][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[19,:] for condition in Condition_keys]),dims=1)[sorting_indxs]])
+    sqr_ITPCs_4Hz_per_model_sorted[:,:,i]=Float64.([NSRplot_model_data[1] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[2][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[3][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[4][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[5][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[6][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[7][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[8][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")] reduce(hcat,[mean(x->x.^2,NSRplot_model_data[9][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition]) for condition in Condition_keys])'[:,19][get_sorting_indices("./")]])
+    raw_3_ITPCs_4Hz_per_model_sorted[:,:,i,1]=Float64.([NSRplot_model_data[1] reduce(hcat,[reduce(hcat,NSRplot_model_data[2][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[3][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[4][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[5][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[6][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[7][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[8][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[9][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,1][19] for condition in Condition_keys])[sorting_indxs].^2])
+    raw_3_ITPCs_4Hz_per_model_sorted[:,:,i,2]=Float64.([NSRplot_model_data[1] reduce(hcat,[reduce(hcat,NSRplot_model_data[2][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[3][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[4][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[5][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[6][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[7][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[8][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[9][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2])
+    raw_3_ITPCs_4Hz_per_model_sorted[:,:,i,3]=Float64.([NSRplot_model_data[1] reduce(hcat,[reduce(hcat,NSRplot_model_data[2][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[3][8*(4-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[4][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[5][8*(1-1)+i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[6][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[7][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[8][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2 reduce(hcat,[reduce(hcat,NSRplot_model_data[9][i][1]["noisestimratio: $(NSR)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2])
 end
 
 raw_3_ITPCs_4Hz_per_model_sorted[:,:,7,1] # this is the raw ITPCs for the 4Hz band, for the 7th NSR.
@@ -980,57 +944,37 @@ for (i,NSR) in enumerate(noisestimratios)
         mean4Hz_ITPC_oana_to_models_test3[j,i]=mean(raw_3_ITPCs_4Hz_per_model_sorted[:,j,i,3])
     end
 end
-gr()
+
 mean4Hz_ITPC_oana_to_models #columns are NSRs, rows are models.
 max_data_mean4Hz_ITPC_oana_to_models
 min_data_mean4Hz_ITPC_oana_to_models
 @show (mean4Hz_ITPC_oana_to_models.-min_data_mean4Hz_ITPC_oana_to_models,max_data_mean4Hz_ITPC_oana_to_models.-mean4Hz_ITPC_oana_to_models)
 mean4Hz_ITPC_oana_to_models_plot=scatter(noisestimratios,mean4Hz_ITPC_oana_to_models_test1', markeralpha=0.5,label=["EEG" "NGNMM fast" "NGNMM slow" "Phase Reset" "No Phase Reset" "Evoked - env stim" "Evoked - deriv stim" "Evoked - peak env stim" "Evoked - peak rate stim"],
     xlabel=L"\lambda",
-    # ylabel=L"\rho_c",
     ylabel=L"\textrm{mean}\;\;4\textrm{Hz}\;\; R^2",
     legend=:false,
-    # xticks=(noisestimratios, noisestimratios),
     ylims=(-0.0,1.0),
     linewidth=2,
     markershape=symbols,
     markersize=3,
-    # linestyle=linestyles,
     color=[color_scheme[1] color_scheme[2] color_scheme[2] color_scheme[3] color_scheme[3] color_scheme[4] color_scheme[4] color_scheme[4] color_scheme[4]],size=(width_px/2,width_px/3))
 scatter!(mean4Hz_ITPC_oana_to_models_plot,noisestimratios,mean4Hz_ITPC_oana_to_models_test2', markeralpha=0.5,label=["EEG" "NGNMM fast" "NGNMM slow" "Phase Reset" "No Phase Reset" "Evoked - env stim" "Evoked - deriv stim" "Evoked - peak env stim" "Evoked - peak rate stim"],
-    # xlabel="NSR",
-    # ylabel="CCC",
     legend=:false,
-    # xticks=(noisestimratios, noisestimratios),
-    # ylims=(-1.0,1.0),
     linewidth=2,
     markershape=symbols,
     markersize=3,
-    # linestyle=linestyles,
     color=[color_scheme[1] color_scheme[2] color_scheme[2] color_scheme[3] color_scheme[3] color_scheme[4] color_scheme[4] color_scheme[4] color_scheme[4]],size=(width_px/2,width_px/3))
 scatter!(mean4Hz_ITPC_oana_to_models_plot,noisestimratios,mean4Hz_ITPC_oana_to_models_test3', markeralpha=0.5,label=["EEG" "NGNMM fast" "NGNMM slow" "Phase Reset" "No Phase Reset" "Evoked - env stim" "Evoked - deriv stim" "Evoked - peak env stim" "Evoked - peak rate stim"],
-    # xlabel="NSR",
-    # ylabel="CCC",
     legend=:false,
-    # xticks=(noisestimratios, noisestimratios),
-    # ylims=(-1.0,1.0),
     linewidth=2,
     markershape=symbols,
     markersize=3,
-    # linestyle=linestyles,
     color=[color_scheme[1] color_scheme[2] color_scheme[2] color_scheme[3] color_scheme[3] color_scheme[4] color_scheme[4] color_scheme[4] color_scheme[4]],size=(width_px/2,width_px/3))
 plot!(mean4Hz_ITPC_oana_to_models_plot,noisestimratios,mean4Hz_ITPC_oana_to_models', markeralpha=0,label=["EEG" "NGNMM fast" "NGNMM slow" "Phase Reset" "No Phase Reset" "Evoked - env stim" "Evoked - deriv stim" "Evoked - peak env stim" "Evoked - peak rate stim"],
-    # xlabel="NSR",
-    # ylabel="CCC",
     legend=:false,
-    # xticks=(noisestimratios, noisestimratios),
-    # ylims=(-1.0,1.0),
     linewidth=2,
-    # linestyle=linestyles,
     markershape=symbols,
     markersize=3,
-
-    # linestyle=linestyles,
     color=[color_scheme[1] color_scheme[2] color_scheme[2] color_scheme[3] color_scheme[3] color_scheme[4] color_scheme[4] color_scheme[4] color_scheme[4]],size=(width_px/2,width_px/3))
 
 
@@ -1045,7 +989,6 @@ mock_plot_for_legend_1=plot(abs.(mean4Hz_ITPC_oana_to_models[1:5,:])'.*0.0, labe
     linewidth=2,
     markershape=permutedims(symbols[1:5]),
     markersize=3,
-    # linestyle=permutedims(linestyles[1,1:5]),
     color=[color_scheme[1] color_scheme[2] color_scheme[2] color_scheme[3] color_scheme[3]],size=(width_px/2,width_px/3))   
 mock_plot_for_legend_2=plot(abs.(mean4Hz_ITPC_oana_to_models[6:9,:])'.*0.0, label=["Evoked - env stim" "Evoked - deriv stim" "Evoked - peak env stim" "Evoked - peak rate stim"],
     xlabel="",
@@ -1058,7 +1001,6 @@ mock_plot_for_legend_2=plot(abs.(mean4Hz_ITPC_oana_to_models[6:9,:])'.*0.0, labe
     linewidth=2,
     markershape=permutedims(symbols[1,6:9]),
     markersize=3,
-    # linestyle=permutedims(linestyles[1,6:9]),
     color=[color_scheme[4] color_scheme[4] color_scheme[4] color_scheme[4]],size=(width_px/2,width_px/3))  
 
 
@@ -1078,7 +1020,6 @@ tosave=plot(mean4Hz_ITPC_oana_to_models_plot, mock_plot_for_legend_1,mock_plot_f
 width, height = tosave.attr[:size]
 Plots.prepare_output(tosave)
 PlotlyJS.savefig(Plots.plotlyjs_syncplot(tosave),"./ppaper_varynsr_mean4Hz_ITPC_v2.pdf",width=Int64(ceil(width)), height=Int64(ceil(height)))
-# savefig(tosave,"./ppaper_varynsr_mean4Hz_ITPC_0_1_yrange.pdf")
 savefig(tosave,"./ppaper_varynsr_mean_ITPC_0_1_yrange_v2.pdf")
 
 
@@ -1114,7 +1055,7 @@ for (i,driveamplituderatio) in enumerate(driveamplituderatios)
     raw_3_drive_strength_model_ITPCs[:,i,3,2]=Float64.(reduce(hcat,[reduce(hcat,drive_strength_model_data[3][7+8*(i-1)][1]["noisestimratio: $(0.9)"]["ITPCs"][condition])[:,2][19] for condition in Condition_keys])[sorting_indxs].^2)
     raw_3_drive_strength_model_ITPCs[:,i,3,3]=Float64.(reduce(hcat,[reduce(hcat,drive_strength_model_data[3][7+8*(i-1)][1]["noisestimratio: $(0.9)"]["ITPCs"][condition])[:,3][19] for condition in Condition_keys])[sorting_indxs].^2)
 end
-symbols_varyfreq=[:circle :cross :diamond :hexagon :octagon :square :x :utriangle :dtriangle :star]
+
 
 drive_strength_plot_model_ITPCs
 drive_strength_plot_model_ITPCs[:,1,:]
@@ -1153,7 +1094,6 @@ for (i,driveamplituderatio) in enumerate(driveamplituderatios)
 end
 DAR_mean4Hz_ITPCplot=scatter(driveamplituderatios,mean4Hz_ITPC_drive_strength_test1, markeralpha=0.5,
     xlabel=L"D",
-    # ylabel=L"\rho_c",
     ylabel=L"\textrm{mean}\;\;4\textrm{Hz}\;\;R^2",
     legend=:false,
     label="",
@@ -1163,31 +1103,22 @@ DAR_mean4Hz_ITPCplot=scatter(driveamplituderatios,mean4Hz_ITPC_drive_strength_te
     markersize=3,
     color=[color_scheme[1] color_scheme[2] color_scheme[2]],size=(width_px/2,width_px/3))
 scatter!(DAR_mean4Hz_ITPCplot,driveamplituderatios,mean4Hz_ITPC_drive_strength_test2, markeralpha=0.5,
-    # xlabel="drive amplitude ratio",
-    # ylabel="CCC",
     legend=:false,
     label="",
-    # ylims=(-1.0,1.0),
     linewidth=2,
     markershape=symbols,
     markersize=3,
     color=[color_scheme[1] color_scheme[2] color_scheme[2]],size=(width_px/2,width_px/3))
 scatter!(DAR_mean4Hz_ITPCplot,driveamplituderatios,mean4Hz_ITPC_drive_strength_test3, markeralpha=0.5,
-    # xlabel="drive amplitude ratio",
-    # ylabel="CCC",
     legend=:false,
     label="",
-    # ylims=(-1.0,1.0),
     linewidth=2,
     markershape=symbols,
     markersize=3,
     color=[color_scheme[1] color_scheme[2] color_scheme[2]],size=(width_px/2,width_px/3))
 
 plot!(DAR_mean4Hz_ITPCplot,driveamplituderatios,mean4Hz_ITPC_drive_strength,
-    # xlabel="DAR",
-    # ylabel="CCC",
     legend=:topright,
-    # ylims=(-1.0,1.0),
     xscale=:log10,
     xticks=(driveamplituderatios, driveamplituderatios),
     linewidth=2,
@@ -1203,6 +1134,5 @@ tosave=DAR_mean4Hz_ITPCplot
 width, height = tosave.attr[:size]
 Plots.prepare_output(tosave)
 PlotlyJS.savefig(Plots.plotlyjs_syncplot(tosave),"./ppaper_drivestrength_mean4Hz_ITPC.pdf",width=Int64(ceil(width)), height=Int64(ceil(height)))
-# savefig(tosave,"./ppaper_drivestrength_mean4Hz_ITPC_fixedlabels.pdf")
 savefig(tosave,"./ppaper_drivestrength_mean_ITPC_fixedlabels.pdf")
 
