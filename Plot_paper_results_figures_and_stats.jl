@@ -8,7 +8,8 @@ gr()
 frequencies=get_frequencies(4.5*10000,10000)[1:676]
 _4Hz_index=indexin([4.0],frequencies)[1]
 driveamplituderatios=[0.1,0.496,2.46,12.2,60.5,100.0]
-driveamplituderatiosevoked=[0.1,0.496,1.0,2.46,12.2,60.5,100.0]
+# driveamplituderatiosevoked=[0.1,0.496,1.0,2.46,12.2,60.5,100.0]
+driveamplituderatiosevoked=[12.2]
 noisestimratios=[0.0,0.05,0.1,0.3,0.5,0.7,0.9,1.0]
 phonemes = ["vowel","b","d","g","k","p","t","m","n","s","z","l","r","f","v"]
 Condition_keys=["vowel","b","d","g","k","p","t","m","n","s","z","l","r","f","v"]
@@ -584,7 +585,7 @@ savefig(tosave,"./phonemepaper_mainresultfig_v2.pdf")
 time2pds=Frequency_varied_phasereset_data[1][1]["noisestimratio: 0.1"]["sortedITPCS_t2PD"][4]
 fourHzITPCS=Vector{Array{Float64,3}}()
 evoked_model_data=[evoked_envelopestim_data, evoked_derivativestim_data, evoked_peakenvstim_data, evoked_peakratestim_data];
-aexperimental_plot=plot()
+experimental_plot=plot()
 # scatter!(experimental_plot, time2pds, sorted_oana_ITPCs[:], label="EEG", xlabel="", ylabel="ITPC 4Hz", linewidth=2,color=color_scheme[1],ylims=(0.0,0.31),smooth=true,markerstrokewidth=1,legend=false)
 scatter!(experimental_plot, time2pds, sorted_oana_ITPCs[:], label="", xlabel="", ylabel="ITPC 4Hz", linewidth=2,color=color_scheme[1],ylims=(0.0,0.31),smooth=true,markerstrokewidth=1,legend=false)
 this_dar_array=Array{Float64,2}(undef,4,15) #4 models, 15 conditions
