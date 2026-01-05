@@ -27,6 +27,12 @@ export run_noise_tests_serial_varydriveamplituderatio_60trials_randinitcond_1ove
 #evoked models
 export alpha_kernel_ODE!, findpeaks, get_smooth_derivative, get_scaled_peakenv_impulses, get_scaled_peakrate_impulses
 export run_evoked_model_noise_tests_serial_varydriveamplituderatio_60trials_randinitcond, get_evoked_model_ITPC_t2pd_correlation_varynoisestimratio_150Hz_60trials_randinitcond!, calculate_ITPC_EvokedModel_noisyrates, Ensemble_EvokedModel, vary_noise_and_initial_conditions_evokedmodel
+
+include("./Phase_Concentration_Metric.jl")
+
+
+
+
 ## Dynamical Systems Models
 function NMM_CA(D,u,p,t)
     @unpack α,k,C,Δ,η_0,vsyn,drive_switch,α_D,Π = p
@@ -227,7 +233,7 @@ function generate_drive_interpolators_specify_noise2stimulus_ratio(stimulus_enve
         interpolators[][trial]=linear_interpolation(xs,Vector(trial_drive_input),extrapolation_bc=Line())
         #interpolators[trial]=interpolate(Vector(trial_drive_input),BSpline(Linear()))#,extrapolation_bc=Line())
     end
-    return interpolators[] #look into typed global
+    return interpolators[]
 end
 
 
@@ -254,7 +260,7 @@ function generate_drive_interpolators_specify_noise2stimulus_ratio_forsaving(sti
         drives[trial]=linear_interpolation(xs,Vector(trial_drive_input),extrapolation_bc=Line())
         #interpolators[trial]=interpolate(Vector(trial_drive_input),BSpline(Linear()))#,extrapolation_bc=Line())
     end
-    return drives #look into typed global
+    return drives
 end
 
 """
@@ -410,7 +416,7 @@ function get_ITPC_t2pd_correlation_varynoisestimratio_150Hz_60trials!(d,conditio
                 p.noise_selector=1
                 println("NSR: ",noisestimratio,"Noiseset: ",noise_filename," Test: ",idx)
                 # generate_drive_interpolators_specify_noise2stimulus_ratio(stimulus_envelope,noisestimratio,noise_filename)
-                global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                 println("running sim")
                 trialdata=Ensemble_NoisyPhoneme(vary_noise,time_range,p,u_init,20,saveat)
                 push!(all_60_trials,trialdata...)
@@ -487,7 +493,7 @@ function get_ITPC_t2pd_correlation_varynoisestimratio_150Hz_60trials_randinitcon
                 p.noise_selector=1
                 println("NSR: ",noisestimratio,"Noiseset: ",noise_filename," Test: ",idx)
                 # generate_drive_interpolators_specify_noise2stimulus_ratio(stimulus_envelope,noisestimratio,noise_filename)
-                global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                 println("running sim")
                 trialdata=Ensemble_NoisyPhoneme(vary_noise_and_initial_conditions_NGNMM,time_range,p,u_init,20,saveat)
                 push!(all_60_trials,trialdata...)
@@ -567,15 +573,15 @@ function get_ITPC_t2pd_correlation_varynoisestimratio_150Hz_60trials_randinitcon
                 # generate_drive_interpolators_specify_noise2stimulus_ratio(stimulus_envelope,noisestimratio,noise_filename)
                 # global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                 if stimulus_type=="envelope"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                 elseif stimulus_type=="derivative"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                     interpolators_global=get_smooth_derivative(interpolators_global,44100.0) 
                 elseif stimulus_type=="peakrate"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                     interpolators_global=get_scaled_peakrate_impulses(interpolators_global,44100.0;scale_range=(0.5,1.0))
                 elseif stimulus_type=="peakenvelope"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                     interpolators_global=get_scaled_peakenv_impulses(interpolators_global,44100.0;scale_range=(0.5,1.0))
                 else
                     error("Unknown stimulus type: $(stimulus_type), must be one of 'envelope', 'derivative', 'peakrate', or 'peakenvelope'.")
@@ -683,7 +689,7 @@ function get_coupled_oscillator_ITPC_t2pd_correlation_varynoisestimratio_150Hz!(
         for idx in 1:3
             println("NSR: ",noisestimratio," Test: ",idx)
             # interpolators[] = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
-            global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+            global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
             # generate_drive_interpolators_specify_noise2stimulus_ratio(stimulus_envelope,noisestimratio,noise_filename)
             
             #update parameters for this noise condition: DAR so that max stimulus amplitude is 1.0. and set c so that max phase correction is 0.7π
@@ -757,7 +763,7 @@ function get_coupled_oscillator_ITPC_t2pd_correlation_varynoisestimratio_150Hz_6
             for noise_filename in noisesets
                 p.noise_selector=1
                 println("NSR: ",noisestimratio,"Noise set: ",noise_filename," Test: ",idx)
-                global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                 
                 #update parameters for this noise condition: DAR so that max stimulus amplitude is 1.0. and set c so that max phase correction is 0.7π
                 max_stimulus_amplitude=maximum(maximum.(interpolators_global))
@@ -831,7 +837,7 @@ function get_coupled_oscillator_modulated_ITPC_t2pd_correlation_varynoisestimrat
             for noise_filename in noisesets
                 p.noise_selector=1
                 println("NSR: ",noisestimratio,"Noise set: ",noise_filename," Test: ",idx)
-                global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                 
                 #update parameters for this noise condition: DAR so that max stimulus amplitude is 1.0. and set c so that max phase correction is 0.7π
                 max_stimulus_amplitude=maximum(maximum.(interpolators_global))
@@ -910,15 +916,15 @@ function get_coupled_oscillator_modulated_ITPC_t2pd_correlation_varynoisestimrat
                 println("NSR: ",noisestimratio,"Noise set: ",noise_filename," Test: ",idx)
                 flush(stdout)
                 if stimulus_type=="envelope"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                 elseif stimulus_type=="derivative"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                     interpolators_global=get_smooth_derivative(interpolators_global,44100.0) 
                 elseif stimulus_type=="peakrate"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                     interpolators_global=get_scaled_peakrate_impulses(interpolators_global,44100.0;scale_range=(0.5,1.0))
                 elseif stimulus_type=="peakenvelope"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                     interpolators_global=get_scaled_peakenv_impulses(interpolators_global,44100.0;scale_range=(0.5,1.0))
                 else
                     error("Unknown stimulus type: $(stimulus_type), must be one of 'envelope', 'derivative', 'peakrate', or 'peakenvelope'.")
@@ -1014,15 +1020,15 @@ function get_evoked_model_ITPC_t2pd_correlation_varynoisestimratio_150Hz_60trial
 
                 #set stimulus based on type: either normal envelopes, or derivative or event based impulse trains (peak rate or peak envelope)
                 if stimulus_type=="envelope"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                 elseif stimulus_type=="derivative"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                     interpolators_global=get_smooth_derivative(interpolators_global,44100.0) 
                 elseif stimulus_type=="peakrate"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                     interpolators_global=get_scaled_peakrate_impulses(interpolators_global,44100.0;scale_range=(0.5,1.0))
                 elseif stimulus_type=="peakenvelope"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                     interpolators_global=get_scaled_peakenv_impulses(interpolators_global,44100.0;scale_range=(0.5,1.0))
                 else
                     error("Unknown stimulus type: $(stimulus_type), must be one of 'envelope', 'derivative', 'peakrate', or 'peakenvelope'.")
