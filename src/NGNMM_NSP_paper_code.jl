@@ -4,14 +4,14 @@ module NGNMM_NSP_paper_code
 using FFTW, DSP, CSV, JSON, WAV, LinearAlgebra, Random, Interpolations, Statistics, WAV, Parameters, ComponentArrays, OrdinaryDiffEq, DelimitedFiles, Distributions, DataFrames, Arrow, JLD2, PowerLawNoise, Plots
 
 #Dynamical Systems Models
-export NMM_CA,NMM_PhonemeDrive_Noisy,Kuramoto_CA, Kuramoto_PhonemeDrive_Noisy, kuramoto_phase_reset_condition, kuramoto_phase_reset_effect!, cartesian_kuramoto
+export NMM_CA,NMM_PhonemeDrive_Noisy,Kuramoto_CA, Kuramoto_PhonemeDrive_Noisy, kuramoto_phase_reset_condition, kuramoto_phase_reset_effect!, cartesian_kuramoto, vary_noise_and_initial_conditions, vary_noise_and_initial_conditions_evokedmodel, vary_noise_and_initial_conditions_NGNMM
 #Stimuli Processing
 export narrowband_envelopes, store_envelopes!,interpolators, generate_drive_interpolators_specify_noise2stimulus_ratio, generate_drive_interpolators_specify_noise2stimulus_ratio_forsaving, select_and_modify_20_random_phonemes
 #Experiment Running Functions
 export vary_noise, Ensemble_NoisyPhoneme, get_ITPC_t2pd_correlation_varynoisestimratio_150Hz!, run_noise_tests_serial_varydriveamplituderatio
 #Data Analysis Functions
 export calculate_ITPC, get_synaptic_current_NMM, get_firing_rate_NMM, get_frequencies, get_sorting_indices, calculate_ITPC_1overf_noise
-export cos_activity
+export cos_activity, calculate_ITPC_CoupledOscillators_noisyrates, calculate_ITPC_EvokedModel_noisyrates
 
 export generate_arrow
 export coupled_oscillator!, oscillator_phase_reset_condition_up, oscillator_phase_reset_effect_up!, oscillator_phase_reset_condition_down, oscillator_phase_reset_effect_down!
@@ -88,7 +88,7 @@ end
 
 function oscillator_phase_reset_condition_down(u,t,integrator)
     u[1] - -pi 
-end
+end 
 
 function oscillator_phase_reset_effect_down!(integrator)
     # N=length(integrator.u.θs)
