@@ -1,1 +1,4 @@
 .vscode/settings.json
+scratch.jl
+*.lz4
+*.jld2

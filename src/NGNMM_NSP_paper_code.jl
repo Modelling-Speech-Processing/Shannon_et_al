@@ -1,6 +1,6 @@
 module NGNMM_NSP_paper_code
 
-# __precompile__(false)z
+# __precompile__(false)
 using FFTW, DSP, CSV, JSON, WAV, LinearAlgebra, Random, Interpolations, Statistics, WAV, Parameters, ComponentArrays, OrdinaryDiffEq, DelimitedFiles, Distributions, DataFrames, Arrow, JLD2, PowerLawNoise, Plots
 
 #Dynamical Systems Models
@@ -25,10 +25,14 @@ export run_coupled_oscillator_modulated_noise_tests_serial_varydriveamplituderat
 export run_noise_tests_serial_varydriveamplituderatio_60trials_randinitcond, get_ITPC_t2pd_correlation_varynoisestimratio_150Hz_60trials_randinitcond!
 export run_noise_tests_serial_varydriveamplituderatio_60trials_randinitcond_1overf_noise, get_ITPC_t2pd_correlation_varynoisestimratio_150Hz_60trials_randinitcond_1overf_noise!
 #evoked models
-export alpha_kernel_ODE!, findpeaks, get_smooth_derivative, get_scaled_peakenv_impulses, get_scaled_peakrate_impulses
+export alpha_kernel_ODE!, findpeaks, get_smooth_derivative, get_scaled_peakenv_impulses, get_scaled_peakrate_impulses, get_unitary_peakenv_impulses
 export run_evoked_model_noise_tests_serial_varydriveamplituderatio_60trials_randinitcond, get_evoked_model_ITPC_t2pd_correlation_varynoisestimratio_150Hz_60trials_randinitcond!, calculate_ITPC_EvokedModel_noisyrates, Ensemble_EvokedModel, vary_noise_and_initial_conditions_evokedmodel
+const interpolators = Ref(Vector{Interpolations.Extrapolation{Float64, 1, ScaledInterpolation{Float64, 1, Interpolations.BSplineInterpolation{Float64, 1, Vector{Float64}, BSpline{Linear{Throw{OnGrid}}}, Tuple{Base.OneTo{Int64}}}, BSpline{Linear{Throw{OnGrid}}}, Tuple{StepRange{Int64, Int64}}}, BSpline{Linear{Throw{OnGrid}}}, Line{Nothing}}}(undef,20))
+global interpolators_global::Vector{Interpolations.Extrapolation{Float64, 1, ScaledInterpolation{Float64, 1, Interpolations.BSplineInterpolation{Float64, 1, Vector{Float64}, BSpline{Linear{Throw{OnGrid}}}, Tuple{Base.OneTo{Int64}}}, BSpline{Linear{Throw{OnGrid}}}, Tuple{StepRange{Int64, Int64}}}, BSpline{Linear{Throw{OnGrid}}}, Line{Nothing}}}
 
 include("./Phase_Concentration_Metric.jl")
+export get_evoked_model_PCM_across_60freqs_randinitcond, generate_sine_drive_interpolators_for_saving, gaussian_filter_and_hilbert_for_PCM
+export get_coupled_oscillator_PCM_across_60freqs_randinitcond, get_NGNMM_PCM_across_60freqs_randinitcond
 
 
 
@@ -201,8 +205,7 @@ function store_envelopes!(d,condition,stim_path_dict)
    end
 end
 
-const interpolators = Ref(Vector{Interpolations.Extrapolation{Float64, 1, ScaledInterpolation{Float64, 1, Interpolations.BSplineInterpolation{Float64, 1, Vector{Float64}, BSpline{Linear{Throw{OnGrid}}}, Tuple{Base.OneTo{Int64}}}, BSpline{Linear{Throw{OnGrid}}}, Tuple{StepRange{Int64, Int64}}}, BSpline{Linear{Throw{OnGrid}}}, Line{Nothing}}}(undef,20))
-global interpolators_global::Vector{Interpolations.Extrapolation{Float64, 1, ScaledInterpolation{Float64, 1, Interpolations.BSplineInterpolation{Float64, 1, Vector{Float64}, BSpline{Linear{Throw{OnGrid}}}, Tuple{Base.OneTo{Int64}}}, BSpline{Linear{Throw{OnGrid}}}, Tuple{StepRange{Int64, Int64}}}, BSpline{Linear{Throw{OnGrid}}}, Line{Nothing}}}
+
 """
 Will make an "interpolators" array that contains 20 interpolations of the given stimulus with different noise before/after and during the stimulus. and put it in global variable Interpolators.
 This can then be used in the ensemble simulation via the interpolation selector variable in a prob_func
@@ -1042,7 +1045,7 @@ function get_evoked_model_ITPC_t2pd_correlation_varynoisestimratio_150Hz_60trial
             sr=Int64(1/saveat)
             ITPC,_,_,frequencies,rates=calculate_ITPC_EvokedModel_noisyrates(all_60_trials,sr,ITPCrange,ITPCrange) #ITPCrange can now exclude first 500ms of stimulus as per O.Cucu paper.
             for_storage[idx]=ITPC[1:676] #frequencies up to 150Hz
-            #save the rates for each trial, for comparison across natural frequencies, and computation of congolmerate activity if desired.
+            #save the rates for each trial, for comparison across natural frequencies, and computation of conglomerate activity if desired.
             if save_traj
                 local name="Trajectories/condition_$(condition)_trial_$(idx)_F$(p.F)Hz_SNR05_c1_60randinitcond_seeded_noise_normalised_nonrectified_modulated_phasemod_$(p.modulation)_integralnormalised_coupled_oscillator_control_test_allnoises_NSR$(noisestimratio)_trajectories"
                 CSV.write(savepath*name*".csv",DataFrame(rates,:auto),writeheader=true)
@@ -1141,7 +1144,6 @@ function calculate_ITPC_1overf_noise(vector_of_solutions,sampling_rate,timerange
     freqs=collect(0:1.0/(wl/sr):(sr/2))
     for (idx,data) in enumerate(vector_of_solutions)
         rates[idx]=get_firing_rate_NMM(data,C,vsyn)[1][Int64(ITPCrange[1]*sr):Int64(ITPCrange[2]*sr)]#
-
         trialwise_seed=noise_seed+idx
         # noises=PowerLawNoise.noise(1.0, 0.0, length(rates[idx])) 
         noises=seeded_noise(trialwise_seed, 1.0, 0.0, length(rates[idx])) #1/f noise with specific seed, different over the 60 trials, but the same over external parameter sets.
@@ -1176,7 +1178,6 @@ function calculate_ITPC_CoupledOscillators_noisyrates(vector_of_solutions,sampli
         # rates[idx]=get_firing_rate_NMM(data,C,vsyn)[1][Int64(ITPCrange[1]*sr):Int64(ITPCrange[2]*sr)]# #from NGNMM implementation
         # rates[idx]=(mean(cos_activity(xytophase(data)),dims=1)[1,:].^2)[Int64(ITPCrange[1]*sr):Int64(ITPCrange[2]*sr)] #squared cos activity, mean across oscillators. the effective firing rate. a vector. #for kuramoto oscillators
         rates[idx]= coupled_oscillator_activity(data)[Int64(ITPCrange[1]*sr):Int64(ITPCrange[2]*sr)]#cos(theta).*r for coupled oscillator activity
-        
         trialwise_seed=noise_seed+idx
         # noises=PowerLawNoise.noise(1.0, 0.0, length(rates[idx])) 
         noises=seeded_noise(trialwise_seed, 1.0, 0.0, length(rates[idx])) #1/f noise with specific seed, different over the 60 trials, but the same over external parameter sets.
@@ -1361,7 +1362,7 @@ function get_scaled_peakenv_impulses(envelopes::Vector{T}, sampling_rate::Float6
         impulse_vector = zeros(length(sample_grid))
         # Set the peak locations to 1.0
         for (peak, loc) in zip(scaled_peaks, locations)
-            impulse_vector[loc] = peak  # Set peak rate impulse to the value of the derivative at the peak location
+            impulse_vector[loc] = peak  # Set peak envelope impulse to the value of the envelope amplitude at the peak location
         end
         # Interpolate the impulse vector
         peakenv_impulses[i] = linear_interpolation(StepRange(sample_grid), impulse_vector, extrapolation_bc=Line());
@@ -1370,6 +1371,39 @@ function get_scaled_peakenv_impulses(envelopes::Vector{T}, sampling_rate::Float6
     return peakenv_impulses
 end
 
+#for PCM drive creation.
+"""
+    get_unitary_peakenv_impulses(envelopes::Vector{T}, sampling_rate::Float64; scale_range=(0.5, 1.0)) where T <: Interpolations.Extrapolation
+    Takes in envelopes, finds the peaks in the envelopes,
+    and returns a vector of Interpolations.Extrapolation of impulse peak-envelope events.
+    The peak magnitudes are scaled to the range [1.0, 1.0].
+"""
+function get_unitary_peakenv_impulses(envelopes::Vector{T}, sampling_rate::Float64; scale_range=(1.0, 1.0)) where T <: Any
+    sample_grid= envelopes[1].itp.itp.parentaxes[1][1:end]  # Get the time grid from the first envelope
+    peakenv_impulses = Vector{T}(undef, length(envelopes))
+    for (i, envelope) in enumerate(envelopes) 
+        # Create a zero vector of the same length as the envelope
+        peaks,locations = findpeaks(envelope[:], 0.1)  # Threshold set to 0.1 #Vector of the interpolation created by [:]
+
+        # Scale the peak magnitudes to the specified range
+        if !isempty(peaks)
+            min_peak = minimum(peaks)
+            max_peak = maximum(peaks)
+            scaled_peaks = scale_range[1] .+ (peaks .- min_peak) .* (scale_range[2] - scale_range[1]) ./ (max_peak - min_peak)
+        else
+            scaled_peaks = Float64[]
+        end
+        impulse_vector = zeros(length(sample_grid))
+        # Set the peak locations to 1.0
+        for (peak, loc) in zip(scaled_peaks, locations)
+            impulse_vector[loc] = peak  # Set peak envelope impulse to the value of the envelope amplitude at the peak location
+        end
+        # Interpolate the impulse vector
+        peakenv_impulses[i] = linear_interpolation(StepRange(sample_grid), impulse_vector, extrapolation_bc=Line());
+    end
+
+    return peakenv_impulses
+end
 
 #for control cases
 function cos_activity(phase_data)
