@@ -44,8 +44,9 @@ function get_coupled_oscillator_PCM_across_60freqs_randinitcond(p,u_init,time_ra
     println("testing: ",condition)
     flush(stdout)
     # saveat=0.0001
-    saveat=1/44100
-    frequencies=range(freq_range[1],freq_range[2],length=60)[1:50] #cut to 50 to avoid failed simulations at high freq end.
+    # saveat=1/44100
+    saveat=1/5000
+    frequencies=range(freq_range[1],freq_range[2],length=60)#[1:50] #cut to 50 to avoid failed simulations at high freq end.
     all_60_trials=Vector{Any}()
     all_stimuli=Vector{Any}()
     for stimulus_idx in 1:3 #3 sets of 20 stimuli to cover 60 frequencies, structured this way to match prior phoneme drive generation.
@@ -55,29 +56,38 @@ function get_coupled_oscillator_PCM_across_60freqs_randinitcond(p,u_init,time_ra
         flush(stdout)
         #set stimulus based on type: either normal envelopes, or derivative or event based impulse trains (peak rate or peak envelope)
         if stimulus_type=="envelope"
-            global interpolators_global = jldopen("./Sine_Drives/drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
+            global interpolators_global = jldopen("./Sine_Drives/wide_drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
         elseif stimulus_type=="derivative"
-            global interpolators_global = jldopen("./Sine_Drives/drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
+            global interpolators_global = jldopen("./Sine_Drives/wide_drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
             interpolators_global=get_smooth_derivative(interpolators_global,44100.0) 
         elseif stimulus_type=="peakrate"
-            global interpolators_global = jldopen("./Sine_Drives/drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
+            global interpolators_global = jldopen("./Sine_Drives/wide_drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
             interpolators_global=get_scaled_peakrate_impulses(interpolators_global,44100.0)
         elseif stimulus_type=="peakenvelope"
-            global interpolators_global = jldopen("./Sine_Drives/drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
-            interpolators_global=get_unitary_peakenv_impulses(interpolators_global,44100.0)
+            global interpolators_global = jldopen("./Sine_Drives/100sr_wide_drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
+            # interpolators_global=get_unitary_peakenv_impulses(interpolators_global,44100.0)
+            interpolators_global=get_unitary_peakenv_impulses(interpolators_global, 5000.0)
         else
             error("Unknown stimulus type: $(stimulus_type), must be one of 'envelope', 'derivative', 'peakrate', or 'peakenvelope'.")
         end
 
         #drive scaling as per phoneme case workflow.
         max_stimulus_amplitude=maximum(maximum.(interpolators_global))
-        p.drive_amplitude=20000/mean(sum.([i[5.0*44100:10.0*44100] for i in interpolators_global]))
+        @info "max stim amp: $(max_stimulus_amplitude)"
+        # p.drive_amplitude=20000/mean(sum.([i[5.0*44100:10.0*44100] for i in interpolators_global]))
+        p.drive_amplitude=20000/mean(sum.([i[5.0*100:10.0*100] for i in interpolators_global]))
+        p.drive_amplitude=1000.0 #does nothing...
+        
+        @info p.drive_amplitude
         p.c=1.0*pi*(1/(max_stimulus_amplitude*p.drive_amplitude*p.q)) #including q. this is the final maximumum stimulus amplitude after all normalisation. 
+        # p.c=500.0
+        @info p.c
+        p.q=4
 
         println("running sim")
         flush(stdout)
         if stimulus_idx==3 #to match the cut to 50 frequencies above.
-            trialdata=Ensemble_CoupledOscillators_modulated(vary_noise_and_initial_conditions_and_natfreq,time_range,p,u_init,10,saveat)        
+            trialdata=Ensemble_CoupledOscillators_modulated(vary_noise_and_initial_conditions_and_natfreq,time_range,p,u_init,20,saveat)        
         else
             trialdata=Ensemble_CoupledOscillators_modulated(vary_noise_and_initial_conditions_and_natfreq,time_range,p,u_init,20,saveat)
         end
@@ -86,13 +96,13 @@ function get_coupled_oscillator_PCM_across_60freqs_randinitcond(p,u_init,time_ra
     end
     response_sr=Int64(1/saveat)
     PCM_vectors,rates=calculate_PCM_oscillator_noisyrates(all_60_trials,all_stimuli,frequencies,response_sr,time_range,PCMrange) #ITPCrange can now exclude first 500ms of stimulus as per O.Cucu paper.
-    #save the rates for each trial, for comparison across natural frequencies, and computation of congolmerate activity if desired.
+    #save the rates for each trial, for comparison across natural frequencies, and computation of conglomerate activity if desired.
     if save_traj
         #check dir exists:
         if !isdir(savepath*"Trajectories/")
             mkdir(savepath*"Trajectories/")
         end
-        local name="Trajectories/nofreq_adj_oscillator_response_to_sine_stimulus_freq_range_$(freq_range[1])to$(freq_range[2])Hz_$(stimulus_type)_transformed"
+        local name="Trajectories/$(response_sr)sr_oscillator_response_to_sine_stimulus_freq_range_$(freq_range[1])to$(freq_range[2])Hz_$(stimulus_type)_transformed"
         CSV.write(savepath*name*".csv",DataFrame(rates,:auto),writeheader=true)
         generate_arrow(name,savepath)
         rm(savepath*name*".csv")
@@ -107,7 +117,7 @@ function get_evoked_model_PCM_across_60freqs_randinitcond(p,u_init,time_range,PC
     flush(stdout)
     # saveat=0.0001
     saveat=1/44100
-    frequencies=range(freq_range[1],freq_range[2],length=60)[1:50] #cut to 50 to avoid failed simulations at high freq end.
+    frequencies=range(freq_range[1],freq_range[2],length=60)#[1:50] #cut to 50 to avoid failed simulations at high freq end.
     all_60_trials=Vector{Any}()
     all_stimuli=Vector{Any}()
     for stimulus_idx in 1:3 #3 sets of 20 stimuli to cover 60 frequencies, structured this way to match prior phoneme drive generation.
@@ -117,15 +127,15 @@ function get_evoked_model_PCM_across_60freqs_randinitcond(p,u_init,time_range,PC
         flush(stdout)
         #set stimulus based on type: either normal envelopes, or derivative or event based impulse trains (peak rate or peak envelope)
         if stimulus_type=="envelope"
-            global interpolators_global = jldopen("./Sine_Drives/drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
+            global interpolators_global = jldopen("./Sine_Drives/wide_drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
         elseif stimulus_type=="derivative"
-            global interpolators_global = jldopen("./Sine_Drives/drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
+            global interpolators_global = jldopen("./Sine_Drives/wide_drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
             interpolators_global=get_smooth_derivative(interpolators_global,44100.0) 
         elseif stimulus_type=="peakrate"
-            global interpolators_global = jldopen("./Sine_Drives/drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
+            global interpolators_global = jldopen("./Sine_Drives/wide_drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
             interpolators_global=get_scaled_peakrate_impulses(interpolators_global,44100.0)
         elseif stimulus_type=="peakenvelope"
-            global interpolators_global = jldopen("./Sine_Drives/drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
+            global interpolators_global = jldopen("./Sine_Drives/wide_drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
             interpolators_global=get_unitary_peakenv_impulses(interpolators_global,44100.0)
         else
             error("Unknown stimulus type: $(stimulus_type), must be one of 'envelope', 'derivative', 'peakrate', or 'peakenvelope'.")
@@ -134,7 +144,7 @@ function get_evoked_model_PCM_across_60freqs_randinitcond(p,u_init,time_range,PC
         println("running sim")
         flush(stdout)
         if stimulus_idx==3 #to match the cut to 50 frequencies above.
-            trialdata=Ensemble_EvokedModel(vary_noise_and_initial_conditions_evokedmodel,time_range,p,u_init,10,saveat)
+            trialdata=Ensemble_EvokedModel(vary_noise_and_initial_conditions_evokedmodel,time_range,p,u_init,20,saveat)
         else
             trialdata=Ensemble_EvokedModel(vary_noise_and_initial_conditions_evokedmodel,time_range,p,u_init,20,saveat)
         end
@@ -165,7 +175,7 @@ function get_NGNMM_PCM_across_60freqs_randinitcond(p,u_init,time_range,PCMrange,
     saveat=1/44100
     C=p.C
     vsyn=p.vsyn
-    frequencies=range(freq_range[1],freq_range[2],length=60)[1:50] #cut to 50 to avoid failed simulations at high freq end.
+    frequencies=range(freq_range[1],freq_range[2],length=60)#[1:50] #cut to 50 to avoid failed simulations at high freq end.
     all_60_trials=Vector{Any}()
     all_stimuli=Vector{Any}()
     for stimulus_idx in 1:3 #3 sets of 20 stimuli to cover 60 frequencies, structured this way to match prior phoneme drive generation.
@@ -175,15 +185,15 @@ function get_NGNMM_PCM_across_60freqs_randinitcond(p,u_init,time_range,PCMrange,
         flush(stdout)
         #set stimulus based on type: either normal envelopes, or derivative or event based impulse trains (peak rate or peak envelope)
         if stimulus_type=="envelope"
-            global interpolators_global = jldopen("./Sine_Drives/drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
+            global interpolators_global = jldopen("./Sine_Drives/wide_drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
         elseif stimulus_type=="derivative"
-            global interpolators_global = jldopen("./Sine_Drives/drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
+            global interpolators_global = jldopen("./Sine_Drives/wide_drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
             interpolators_global=get_smooth_derivative(interpolators_global,44100.0) 
         elseif stimulus_type=="peakrate"
-            global interpolators_global = jldopen("./Sine_Drives/drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
+            global interpolators_global = jldopen("./Sine_Drives/wide_drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
             interpolators_global=get_scaled_peakrate_impulses(interpolators_global,44100.0)
         elseif stimulus_type=="peakenvelope"
-            global interpolators_global = jldopen("./Sine_Drives/drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
+            global interpolators_global = jldopen("./Sine_Drives/wide_drive_interpolators_$(stimulus_idx).jld2","r")["drives"]
             interpolators_global=get_unitary_peakenv_impulses(interpolators_global,44100.0)
         else
             error("Unknown stimulus type: $(stimulus_type), must be one of 'envelope', 'derivative', 'peakrate', or 'peakenvelope'.")
@@ -191,7 +201,7 @@ function get_NGNMM_PCM_across_60freqs_randinitcond(p,u_init,time_range,PCMrange,
         println("running sim")
         flush(stdout)
         if stimulus_idx==3 #to match the cut to 50 frequencies above.
-                trialdata=Ensemble_NoisyPhoneme(vary_noise_and_initial_conditions_NGNMM,time_range,p,u_init,10,saveat)
+                trialdata=Ensemble_NoisyPhoneme(vary_noise_and_initial_conditions_NGNMM,time_range,p,u_init,20,saveat)
         else
                 trialdata=Ensemble_NoisyPhoneme(vary_noise_and_initial_conditions_NGNMM,time_range,p,u_init,20,saveat)
         end
@@ -263,9 +273,12 @@ function calculate_PCM_oscillator_noisyrates(vector_of_solutions,stimuli,frequen
         #get the peak frequency of this stimulus:
         peak_frequency=frequencies[trial_idx]
         #turn stimulus interpolator into values over time range matching the response sampling rate:
-        response_idx=range(PCMrange[1]*44100,PCMrange[2]*44100,step=1)
-        response_times=response_idx./44100.0
-        stimulus_idxs=response_times.*44100.0 #stimulus at 44100Hz sampling rate. (hang over from phoneme drive interpolator.)
+        # response_idx=range(PCMrange[1]*44100,PCMrange[2]*44100,step=1)
+        response_idx=range(PCMrange[1]*rates_sr,PCMrange[2]*rates_sr,step=1)
+        # response_times=response_idx./44100.0
+        response_times=response_idx./rates_sr
+        # stimulus_idxs=response_times.*44100.0 #stimulus at 44100Hz sampling rate. (hang over from phoneme drive interpolator.)
+        stimulus_idxs=response_times.*rates_sr #stimulus at 44100Hz sampling rate. (hang over from phoneme drive interpolator.)
         stimulus_values=stimulus_interpolator(stimulus_idxs)
         #filter and get instantaneous phase:
         if trial_idx==1
