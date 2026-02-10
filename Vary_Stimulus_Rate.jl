@@ -1,6 +1,6 @@
 using Pkg; Pkg.activate("$(pwd())")
 using NGNMM_NSP_paper_code
-using ComponentArrays, OrdinaryDiffEq, Plots, Parameters, JLD2, ProgressLogging
+using ComponentArrays, OrdinaryDiffEq, Plots, Parameters, JLD2, ProgressLogging, Statistics
 #to vary the stimulus rate I need a new version of each model that scales time in its 
 #call of the stimulus interpolation object.
 condition="b" #which phoneme condition to use for the drive
