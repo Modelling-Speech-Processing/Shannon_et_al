@@ -2,3 +2,4 @@
 scratch.jl
 *.lz4
 *.jld2
+*.pdf
