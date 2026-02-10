@@ -8,7 +8,6 @@ gr()
 frequencies=get_frequencies(4.5*10000,10000)[1:676]
 _4Hz_index=indexin([4.0],frequencies)[1]
 driveamplituderatios=[0.1,0.496,2.46,12.2,60.5,100.0]
-# driveamplituderatiosevoked=[0.1,0.496,1.0,2.46,12.2,60.5,100.0]
 driveamplituderatiosevoked=[12.2]
 noisestimratios=[0.0,0.05,0.1,0.3,0.5,0.7,0.9,1.0]
 phonemes = ["vowel","b","d","g","k","p","t","m","n","s","z","l","r","f","v"]
@@ -594,12 +593,12 @@ labels_evkd=["Evoked - envelope", "Evoked - derivative", "Evoked - peakenv", "Ev
 idxs=[1,2,3,4] #indices of evoked models in model_data
 for (i,model) in enumerate(evoked_model_data) 
     p=plot()
-    #plot experimental data in the background of each plot.
-    if i==1
-        scatter!(p, time2pds, sorted_oana_ITPCs[:], label="EEG", xlabel="", ylabel=L"4\textrm{Hz}~~R^2", linewidth=2,color=color_scheme[1],ylims=(0.0,0.31),smooth=true,markerstrokewidth=1,legend=true)
-    else
-        scatter!(p, time2pds, sorted_oana_ITPCs[:], label="EEG", xlabel="", ylabel="", linewidth=2,color=color_scheme[1],ylims=(0.0,0.31),smooth=true,markerstrokewidth=1,legend=true)
-    end
+    #plot experimental data in the background of each plot. comment back in if desired.
+    # if i==1
+        # scatter!(p, time2pds, sorted_oana_ITPCs[:], label="EEG", xlabel="", ylabel=L"4\textrm{Hz}~~R^2", linewidth=2,color=color_scheme[1],ylims=(0.0,0.31),smooth=true,markerstrokewidth=1,legend=true)
+    # else
+        # scatter!(p, time2pds, sorted_oana_ITPCs[:], label="EEG", xlabel="", ylabel="", linewidth=2,color=color_scheme[1],ylims=(0.0,0.31),smooth=true,markerstrokewidth=1,legend=true)
+    # end
     # scatter!(evoked_model_plot, time2pds, this_dar_array[idxs[i],:].^2, label=labels_evkd[i], linewidth=2, xlabel="Latency to\n peak derivative (s)",color=color_scheme[4], smooth=true, markerstrokewidth=1,markershape=symbols[i],linestyle=linestyles[i],ylims=(0.0,0.55),legend=false)
 
     this_dar_array[idxs[i],:]=reduce(hcat,[mean(x->x.^2,model[7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[19] for condition in Condition_keys])'
@@ -609,16 +608,20 @@ for (i,model) in enumerate(evoked_model_data)
     @show upper_bounds
     lower_bounds=minimum(x->x^2,range_data,dims=1)[sorting_indxs]
     @show lower_bounds  
-    if i==3 #plot both peak rate and peakenv in the same plot
+    if i==1
+        scatter!(p, time2pds, this_dar_array[i,sorting_indxs], label=labels_evkd[i], yerr=(this_dar_array[i,sorting_indxs]-lower_bounds,upper_bounds.-this_dar_array[i,sorting_indxs]), linewidth=2, xlabel="L (s)", ylabel=L"4\textrm{Hz}~~R^2",color=color_scheme[4], smooth=true, markerstrokewidth=1,markershape=symbols[3],linestyle=linestyles[1],ylims=(0.0,0.55),
+        legend=true)
+        push!(evoked_model_plots,p)
+    elseif i==3 #plot both peak rate and peakenv in the same plot
         this_dar_array[4,:]=reduce(hcat,[mean(x->x.^2,evoked_model_data[4][7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[19] for condition in Condition_keys])'
         fourth_range_data=reduce(hcat,[reduce(hcat,evoked_model_data[4][7][1]["noisestimratio: 0.9"]["ITPCs"][condition])[19,:] for condition in Condition_keys])
         fourth_upper_bounds=maximum(x->x^2,fourth_range_data,dims=1)[sorting_indxs]
         fourth_lower_bounds=minimum(x->x^2,fourth_range_data,dims=1)[sorting_indxs]
 
 
-        scatter!(p, time2pds, this_dar_array[i,sorting_indxs], label=labels_evkd[i], yerr=(this_dar_array[i,sorting_indxs]-lower_bounds,upper_bounds.-this_dar_array[i,sorting_indxs]), linewidth=2, xlabel="L (s)",color=color_scheme[4], smooth=true, markerstrokewidth=1,markershape=symbols[3],linestyle=linestyles[1],ylims=(0.0,0.55),
-        legend=true)
-        println("plotting both peak rate and peakenv in the same plot")
+        # scatter!(p, time2pds, this_dar_array[i,sorting_indxs], label=labels_evkd[i], yerr=(this_dar_array[i,sorting_indxs]-lower_bounds,upper_bounds.-this_dar_array[i,sorting_indxs]), linewidth=2, xlabel="L (s)",color=color_scheme[4], smooth=true, markerstrokewidth=1,markershape=symbols[3],linestyle=linestyles[1],ylims=(0.0,0.55),
+        # legend=true)
+        # println("plotting both peak rate and peakenv in the same plot") removed peak env as per reviewer suggestion it is unbiophysical.
         scatter!(p, time2pds, this_dar_array[4,sorting_indxs], label=labels_evkd[4], yerr=(this_dar_array[4,sorting_indxs]-fourth_lower_bounds,fourth_upper_bounds-this_dar_array[4,sorting_indxs]), linewidth=2, xlabel="L (s)",color=color_scheme[4], smooth=true, markerstrokewidth=1,markershape=symbols[1+3],linestyle=linestyles[2],ylims=(0.0,0.55),legend=true)
         push!(evoked_model_plots,p)
         break
