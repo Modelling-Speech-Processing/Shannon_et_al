@@ -7,10 +7,12 @@ using ProgressLogging, JLD2
 
 phoneme_sequence_envelopes=JSON.parsefile("PhonemeEnvelopes_allconditions.json")
 
-noise_names=["NoiseSequences60.csv","NoiseSequences60_3.csv","NoiseSequences60_old.csv"]
+# noise_names=["NoiseSequences60.csv","NoiseSequences60_3.csv","NoiseSequences60_old.csv"]
+noise_names=["NoiseSequences60.csv"]
 
 
 noise_stimulus_ratios=[0.0,0.05,0.1,0.3,0.7,0.9,1.0]
+noise_stimulus_ratios=[0.3]
 Condition_keys=["vowel","b","d","g","k","p","t","m","n","s","z","l","r","f","v"]
 
 #create the drive interpolators vector for each phoneme for each noise ratio and save it to a file for later use.
