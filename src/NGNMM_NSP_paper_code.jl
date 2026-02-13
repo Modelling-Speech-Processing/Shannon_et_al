@@ -30,6 +30,8 @@ export run_evoked_model_noise_tests_serial_varydriveamplituderatio_60trials_rand
 const interpolators = Ref(Vector{Interpolations.Extrapolation{Float64, 1, ScaledInterpolation{Float64, 1, Interpolations.BSplineInterpolation{Float64, 1, Vector{Float64}, BSpline{Linear{Throw{OnGrid}}}, Tuple{Base.OneTo{Int64}}}, BSpline{Linear{Throw{OnGrid}}}, Tuple{StepRange{Int64, Int64}}}, BSpline{Linear{Throw{OnGrid}}}, Line{Nothing}}}(undef,20))
 global interpolators_global::Vector{Interpolations.Extrapolation{Float64, 1, ScaledInterpolation{Float64, 1, Interpolations.BSplineInterpolation{Float64, 1, Vector{Float64}, BSpline{Linear{Throw{OnGrid}}}, Tuple{Base.OneTo{Int64}}}, BSpline{Linear{Throw{OnGrid}}}, Tuple{StepRange{Int64, Int64}}}, BSpline{Linear{Throw{OnGrid}}}, Line{Nothing}}}
 
+export get_concordance_correlation_coefficient, figure_size_tuple
+
 include("./Phase_Concentration_Metric.jl")
 export get_evoked_model_PCM_across_60freqs_randinitcond, generate_sine_drive_interpolators_for_saving, gaussian_filter_and_hilbert_for_PCM
 export get_coupled_oscillator_PCM_across_60freqs_randinitcond, get_NGNMM_PCM_across_60freqs_randinitcond
@@ -71,6 +73,10 @@ function NMM_PhonemeDrive_Noisy(D,u,p,t)
 
     #interpolators[NoiseSelector] chooses a given interpolator out of the previously constructed global interpolator vector (containing all the noise conditions and the given stimulus)
     D.A_dot=(α_D^2).*interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude-2*α_D*A_dot-(α_D^2)*A 
+  
+
+    # D.A_dot=(α_D^2)*(1.0 + interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0))*drive_amplitude-2*α_D*A_dot-(α_D^2)*A  #+1 to stimulus for sine drive in PCM calculations, to avoid negative stimulus.
+
     
     D.A=A_dot
     
@@ -98,11 +104,12 @@ end
 function coupled_oscillator!(du, u, p, t)
     @unpack F, c, drive_amplitude, noise_selector, sampling_rate,q = p
     @unpack θ, r = u
-    du.θ = 2*pi*F - c * q * ((interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude)/r) * sin(θ) 
+    # du.θ = 2*pi*F - c * q * ((interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude)/r) * sin(θ) 
+    du.θ = 2*pi*F - c * q * (((1+interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0))*drive_amplitude)/r) * sin(θ)  #+1 to stimulus to make sine wave strictly positive
     # du.θ = 2*pi*F - c * ((interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude)/r) * sin(θ/2) #for sin(1/2theta) run
     # du.θ = 2*pi*F - c * q * ((interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude)/r)# * sin(θ) #for no sin run
     # du.θ = 2*pi*F + c * ((interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude)/r)# * sin(θ) #for positive correction run
-    du.r = r*(1-r^2) + c * q * (interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude) * cos(θ)
+    du.r = r*(1-r^2) + c * q * ((1+interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0))*drive_amplitude) * cos(θ)
     # du.r = r*(1-r^2) + c * q * (interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude) #* cos(θ) #for no sin no cos run
     # du.r = r*(1-r^2) - c * (interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude) * cos(θ) #for positivenegative correction run
     # du.r = r*(1-r^2) + c * (interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude) * cos(θ/2) #for sin(1/2theta) run 
@@ -1414,6 +1421,32 @@ function coupled_oscillator_activity(solution)
 end
 
 
+#stats:
+function get_concordance_correlation_coefficient(x, y)
+    # Ensure x and y are vectors
+    x = vec(x)
+    y = vec(y)
+
+    # Calculate means
+    mean_x = mean(x)
+    mean_y = mean(y)
+
+    # Calculate variances
+    var_x = var(x;mean=mean_x)
+    var_y = var(y;mean=mean_y)
+
+    #calculate correlation
+    ρ=cor(x,y)
+
+    # Calculate concordance correlation coefficient
+    ccc = (2 * ρ * sqrt(var_x) * sqrt(var_y)) / (var_x + var_y + (mean_x - mean_y)^2)
+    #replaced to return just the mean ITPC of the model ITPCs, for new figure. 
+    ccc=mean(y)
+
+    return ccc
+end
+
+
 """
     seeded_noise(seed, β, ν₀, dims...)
     
@@ -1462,5 +1495,36 @@ function generate_arrow(name, data_path; force = false, compress = true)
     end
     return nothing
 end
+
+"""
+    figure_size_tuple(cols; aspect_ratio=4/3)
+
+Calculates the (width, height) tuple for Plots.jl size attribute based on eNeuro standards.
+- cols: 1 (8.5cm), 1.5 (11.6cm), or 2 (17.6cm)
+- aspect_ratio: Width / Height (default 4/3)
+"""
+function figure_size_tuple(cols::Number; aspect_ratio=1.33)
+    # eNeuro standard widths in cm
+    widths_cm = Dict(
+        1   => 8.5,
+        1.5 => 11.6,
+        2   => 17.6
+    )
+    
+    if !haskey(widths_cm, cols)
+        error("Invalid column size. Use 1, 1.5, or 2.")
+    end
+
+    target_width_cm = widths_cm[cols]
+    
+    # Conversion: cm -> inches -> LaTeX points 
+    logical_dpi=100
+    width_px = (target_width_cm / 2.54) * 100
+    height_px = width_px / aspect_ratio
+    
+    return (round(Int, width_px), round(Int, height_px))
+end
+
+
 
 end
