@@ -4,7 +4,7 @@ using ComponentArrays, OrdinaryDiffEq, Plots, Parameters, JLD2, ProgressLogging,
 #to vary the stimulus rate I need a new version of each model that scales time in its 
 #call of the stimulus interpolation object.
 condition="b" #which phoneme condition to use for the drive
-idx=1 #which test index to use
+idx=2 #which test index to use
 noisestimratio=0.3 #which noise to stimulus ratio to use
 DAR=12.2
 noise_filename="NoiseSequences60.csv" #which noise file to use
@@ -63,6 +63,7 @@ function NMM_PhonemeDrive_Noisy_VaryStimRate(D,u,p,t)
 
     # --- Drive Dynamics ---
     drive_input = interpolators_global[Int64(noise_selector)](idx)
+    drive_input = 0.09539302085245102
     D.A_dot = (α_D^2) * drive_input * drive_amplitude - 2*α_D*A_dot - (α_D^2)*A 
     D.A = A_dot
 end
@@ -109,7 +110,7 @@ stimrate_ITPCs=Vector{Float64}(undef,length(taus))
 fourHz_ITPCs=Vector{Float64}(undef,length(taus))
 fourHzidx=19
 @progress for (tidx,τ) in enumerate(taus)
-    p=ComponentArray(α=α,k=k,C=C,vsyn=vsyn,Δ=Δ, η_0=η_0,α_D=α_D,sampling_rate=phoneme_sampling_rate, drive_amplitude=Π,noise_selector=1,noise_case_reference=1, τ=τ) 
+    p=ComponentArray(α=α,k=k,C=C,vsyn=vsyn,Δ=Δ, η_0=η_0,α_D=α_D,sampling_rate=phoneme_sampling_rate, drive_amplitude=drive_amplitude,noise_selector=1,noise_case_reference=1, τ=τ) 
     results=Ensemble_NoisyPhoneme_VaryStimRate(prob_func,time_range,p,u0,20,saveat)
     ITPC,_,_,freqs,_=calculate_ITPC_1overf_noise(results,1/saveat,(5.5,10.0),C,vsyn,(5.5,10.0))
     if tidx==1
@@ -146,9 +147,8 @@ ITPCrange=(5.5,10.0)
 
 stimrate_ITPCs_fastNGNMM=Vector{Float64}(undef,length(taus))
 fourHz_ITPCs_fastNGNMM=Vector{Float64}(undef,length(taus))
-
 @progress for (tidx,τ) in enumerate(taus)
-    p_fast_NGNMM=ComponentArray(α=α,k=k,C=C,vsyn=vsyn,Δ=Δ, η_0=η_0,α_D=α_D,sampling_rate=phoneme_sampling_rate, drive_amplitude=Π,noise_selector=1,noise_case_reference=1, τ=τ) 
+    p_fast_NGNMM=ComponentArray(α=α,k=k,C=C,vsyn=vsyn,Δ=Δ, η_0=η_0,α_D=α_D,sampling_rate=phoneme_sampling_rate, drive_amplitude=drive_amplitude,noise_selector=1,noise_case_reference=1, τ=τ) 
     results=Ensemble_NoisyPhoneme_VaryStimRate(prob_func,time_range,p_fast_NGNMM,u0,20,saveat)
     ITPC,_,_,freqs,_=calculate_ITPC_1overf_noise(results,1/saveat,(5.5,10.0),C,vsyn,(5.5,10.0))
     if tidx==1
@@ -159,7 +159,6 @@ fourHz_ITPCs_fastNGNMM=Vector{Float64}(undef,length(taus))
     stimrate_ITPCs_fastNGNMM[tidx]=ITPC[freq_idxs[tidx]].^2
     fourHz_ITPCs_fastNGNMM[tidx]=ITPC[fourHzidx].^2
 end
-
 
 fast_itpc_plot=bar(stim_rates,stimrate_ITPCs_fastNGNMM,xlabel="Stimulus Rate (Hz)",ylabel="ITPC",label="Stimulus Rate ITPC",title="15Hz NGNMM 'b'-Stim",size=(800,600),alpha=0.5);
 bar!(fast_itpc_plot,stim_rates,fourHz_ITPCs_fastNGNMM,xlabel="Stimulus Rate (Hz)",label="4Hz ITPC",alpha=0.5);
@@ -384,3 +383,298 @@ evoked_itpc_plot_line=plot(stim_rates,stimrate_ITPCs_evoked./maximum(stimrate_IT
 plot!(evoked_itpc_plot_line,stim_rates,fourHz_ITPCs_evoked./maximum(stimrate_ITPCs_evoked),xlabel="Stimulus Rate (Hz)",label="4Hz ITPC",alpha=0.5,marker=:circle,ylims=(0.0,1.0));
 plot(slow_itpc_plot_line,fast_itpc_plot_line,phasereset_itpc_plot_line,tunedphasereset_itpc_plot_line,evoked_itpc_plot_line,layout=(3,2),size=(1500,1500),ylabel="Normalized ITPC",margin=5Plots.mm,plot_title="0.3 noise to stim ratio (Normalized)")
 
+
+
+### figure that is in similar format to the PCM figure.
+#i.e evoked top left, phase reset top right, then slow and fast NGNMM below.
+
+plot(evoked_itpc_plot,phasereset_itpc_plot,slow_itpc_plot,fast_itpc_plot,layout=(2,2),size=(1200,1200),ylabel="Normalized ITPC",margin=5Plots.mm,plot_title="0.3 noise to stim ratio (Normalized)")
+
+
+#run the tests again but taking the mean ITPC over all the conditions:
+Condition_keys=["vowel","b","d","g","k","p","t","m","n","s","z","l","r","f","v"]
+drive_interpolators=[]
+for condition in Condition_keys
+    push!(drive_interpolators,jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"])
+end
+
+taus=collect(range(0.25,5.0,length=20))
+stim_rates=[4*tau for tau in taus] #in Hz
+
+## slow NGNMM run:
+α=1/0.035 #1/a is 30ms
+k=0.105
+# C = 0.033#capacitance in Farads
+C = 0.066#capacitance in Farads
+vsyn=-10.0
+# η_0=21.5
+η_0=1.5
+# Δ=0.5
+Δ=0.25
+α_D=1/0.0056
+Π=15.0
+#Drive 
+phoneme_sampling_rate=44100
+drive_amplitude=η_0*DAR
+u0=ComponentArray(g_dot=0.0,g=0.82,Z=0.0+im*0.0, A_dot=0.0, A=0.0)
+time_range=(0.0,10.0)
+saveat=0.0001   
+
+freq_idxs=Vector{Int64}(undef,length(stim_rates)) #to store after first ITPC calculation. freq per tau. 
+stimrate_ITPCs=Array{Float64,2}(undef,length(taus),length(Condition_keys))
+fourHz_ITPCs=Array{Float64,2}(undef,length(taus),length(Condition_keys))
+fourHzidx=19
+@progress for (i_idx,interpolator) in enumerate(drive_interpolators)
+    global interpolators_global=interpolator
+    for (tidx,τ) in enumerate(taus)
+        p=ComponentArray(α=α,k=k,C=C,vsyn=vsyn,Δ=Δ, η_0=η_0,α_D=α_D,sampling_rate=phoneme_sampling_rate, drive_amplitude=drive_amplitude,noise_selector=1,noise_case_reference=1, τ=τ) 
+        results=Ensemble_NoisyPhoneme_VaryStimRate(prob_func,time_range,p,u0,20,saveat)
+        ITPC,_,_,freqs,_=calculate_ITPC_1overf_noise(results,1/saveat,(5.5,10.0),C,vsyn,(5.5,10.0))
+        if tidx==1
+            for j in eachindex(stim_rates)
+                freq_idxs[j]=Int64(findmin(abs.(freqs .- stim_rates[j]))[2])
+            end
+        end
+        stimrate_ITPCs[tidx,i_idx]=ITPC[freq_idxs[tidx]].^2
+        fourHz_ITPCs[tidx,i_idx]=ITPC[fourHzidx].^2
+    end
+end
+slow_itpc_plot=bar()
+for (c_idx,condition) in enumerate(Condition_keys)
+    bar!(slow_itpc_plot,stim_rates,stimrate_ITPCs[:,c_idx],xlabel="Stimulus Rate (Hz)",ylabel="ITPC",label="$(condition) stim",size=(800,600),alpha=0.5);
+end
+display(slow_itpc_plot)
+
+#fast NGNMM run:
+# set parameters
+α=1/0.035 #1/a is 30ms
+k=0.105
+C = 0.033#capacitance in Farads
+# C = 0.066#capacitance in Farads
+vsyn=-10.0
+η_0=21.5
+# η_0=1.5
+Δ=0.5
+# Δ=0.25
+α_D=1/0.0056
+Π=15.0
+#Drive 
+phoneme_sampling_rate=44100
+drive_amplitude=η_0*DAR
+u0=ComponentArray(g_dot=0.0,g=0.82,Z=0.0+im*0.0, A_dot=0.0, A=0.0)
+time_range=(0.0,10.0)
+saveat=0.0001   
+
+freq_idxs=Vector{Int64}(undef,length(stim_rates)) #to store after first ITPC calculation. freq per tau. 
+fast_NGNMM_stimrate_ITPCs=Array{Float64,2}(undef,length(taus),length(Condition_keys))
+fast_NGNMM_fourHz_ITPCs=Array{Float64,2}(undef,length(taus),length(Condition_keys))
+fourHzidx=19
+@progress for (i_idx,interpolator) in enumerate(drive_interpolators)
+    global interpolators_global=interpolator
+    for (tidx,τ) in enumerate(taus)
+        p=ComponentArray(α=α,k=k,C=C,vsyn=vsyn,Δ=Δ, η_0=η_0,α_D=α_D,sampling_rate=phoneme_sampling_rate, drive_amplitude=drive_amplitude,noise_selector=1,noise_case_reference=1, τ=τ) 
+        results=Ensemble_NoisyPhoneme_VaryStimRate(prob_func,time_range,p,u0,20,saveat)
+        ITPC,_,_,freqs,_=calculate_ITPC_1overf_noise(results,1/saveat,(5.5,10.0),C,vsyn,(5.5,10.0))
+        if tidx==1
+            for j in eachindex(stim_rates)
+                freq_idxs[j]=Int64(findmin(abs.(freqs .- stim_rates[j]))[2])
+            end
+        end
+        fast_NGNMM_stimrate_ITPCs[tidx,i_idx]=ITPC[freq_idxs[tidx]].^2
+        fast_NGNMM_fourHz_ITPCs[tidx,i_idx]=ITPC[fourHzidx].^2
+    end
+end
+fast_itpc_plot=bar()
+for (c_idx,condition) in enumerate(Condition_keys)
+    bar!(fast_itpc_plot,stim_rates,fast_NGNMM_stimrate_ITPCs[:,c_idx],xlabel="Stimulus Rate (Hz)",ylabel="ITPC",label="$(condition) stim",size=(800,600),alpha=0.5);
+end
+display(fast_itpc_plot)
+
+
+#evoked model run:
+u0=ComponentArray(x1=0.0, x2=0.0)
+time_range=(0.0,10.0)
+phoneme_sampling_rate=44100
+drive_amplitude=4.0 #will be updated in the test function to make drive amplitude equal to DAR setting.
+α=1/0.03
+ITPCrange=(5.5,10.0)   
+freq_idxs=Vector{Int64}(undef,length(stim_rates)) #to store after first ITPC calculation. freq per tau.
+evoked_stimrate_ITPCs=Array{Float64,2}(undef,length(taus),length(Condition_keys))
+evoked_fourHz_ITPCs=Array{Float64,2}(undef,length(taus),length(Condition_keys))
+fourHzidx=19
+@progress for (i_idx,interpolator) in enumerate(drive_interpolators)
+    global interpolators_global=interpolator
+    for (tidx,τ) in enumerate(taus)
+        p=ComponentArray(α=α, drive_amplitude=drive_amplitude, noise_selector=1, sampling_rate=phoneme_sampling_rate,noise_case_reference=1, τ=τ)
+        results=Ensemble_EvokedModel_varystimrate(prob_func,time_range,p,u0,20,saveat)
+        ITPC,_,_,freqs,_=calculate_ITPC_EvokedModel_noisyrates(results,1/saveat,(5.5,10.0),(5.5,10.0))
+        if tidx==1
+            for j in eachindex(stim_rates)
+                freq_idxs[j]=Int64(findmin(abs.(freqs .- stim_rates[j]))[2])
+            end
+        end
+        evoked_stimrate_ITPCs[tidx,i_idx]=ITPC[freq_idxs[tidx]].^2
+        evoked_fourHz_ITPCs[tidx,i_idx]=ITPC[fourHzidx].^2
+    end
+end
+evoked_itpc_plot=bar()
+for (c_idx,condition) in enumerate(Condition_keys)
+    bar!(evoked_itpc_plot,stim_rates,evoked_stimrate_ITPCs[:,c_idx],xlabel="Stimulus Rate (Hz)",ylabel="ITPC",label="$(condition) stim",size=(800,600),alpha=0.5);
+end
+display(evoked_itpc_plot)
+
+#untuned phase resetting oscillator run:
+
+phase_modulation=1 
+# set parameters
+u0=ComponentArray(θ=0.0, r=1.0)
+max_stim=maximum(maximum.(interpolators_global))
+drive_amplitude=20000/mean(sum.([i[5.0*44100:10.0*44100] for i in interpolators_global]))
+c=0.7*pi*(1/(max_stim*drive_amplitude))
+
+time_range=(0.0,10.0)
+F=4.0
+phoneme_sampling_rate=44100
+#for rectified version
+# q_normalisation=4/(2*pi-2*pi*phase_modulation+2*phase_modulation) #scaling factor to make absolute area under stimulus modulation curve = 4. 
+#for non rectified
+if phase_modulation<=0.5
+    q_normalisation=2/((1-phase_modulation)*π) #scaling factor to make absolute area under stimulus modulation curve = 4. 
+else
+    m=phase_modulation
+    q_normalisation=4/(4*m*sqrt(1-((m-1)/m)^2)+2*(m-1)asin((m-1)/m))
+end
+ITPCrange=(5.5,10.0)
+
+freq_idxs=Vector{Int64}(undef,length(stim_rates)) #to store after first ITPC calculation. freq per tau.
+untuned_pro_stimrate_ITPCs=Array{Float64,2}(undef,length(taus),length(Condition_keys))
+untuned_pro_fourHz_ITPCs=Array{Float64,2}(undef,length(taus),length(Condition_keys))
+fourHzidx=19
+@progress for (i_idx,interpolator) in enumerate(drive_interpolators)
+    global interpolators_global=interpolator
+    for (tidx,τ) in enumerate(taus)
+        @info tidx
+        p=ComponentArray(F=F, c=c, drive_amplitude=drive_amplitude, noise_selector=1, sampling_rate=phoneme_sampling_rate,modulation=phase_modulation,q=q_normalisation,noise_case_reference=1,τ=τ)
+        results=Ensemble_CoupledOscillators_modulated_varystimrate(prob_func,time_range,p,u0,20,saveat)
+        ITPC,_,_,freqs,_=calculate_ITPC_CoupledOscillators_noisyrates(results,1/saveat,(5.5,10.0),(5.5,10.0))
+        if tidx==1
+            for j in eachindex(stim_rates)
+                freq_idxs[j]=Int64(findmin(abs.(freqs .- stim_rates[j]))[2])
+            end
+        end
+        untuned_pro_stimrate_ITPCs[tidx,i_idx]=ITPC[freq_idxs[tidx]].^2
+        untuned_pro_fourHz_ITPCs[tidx,i_idx]=ITPC[fourHzidx].^2
+    end
+end
+untuned_pro_itpc_plot=bar()
+for (c_idx,condition) in enumerate(Condition_keys)
+    bar!(untuned_pro_itpc_plot,stim_rates,untuned_pro_stimrate_ITPCs[:,c_idx],xlabel="Stimulus Rate (Hz)",ylabel="ITPC",label="$(condition) stim",size=(800,600),alpha=0.5);
+end
+display(untuned_pro_itpc_plot)
+
+#and tuned phase resetting oscillator run:
+phase_modulation=1 
+# set parameters
+u0=ComponentArray(θ=0.0, r=1.0)
+max_stim=maximum(maximum.(interpolators_global))
+drive_amplitude=20000/mean(sum.([i[5.0*44100:10.0*44100] for i in interpolators_global]))
+c=0.7*pi*(1/(max_stim*drive_amplitude))
+
+time_range=(0.0,10.0)
+F=4.0
+phoneme_sampling_rate=44100
+#for rectified version
+# q_normalisation=4/(2*pi-2*pi*phase_modulation+2*phase_modulation) #scaling factor to make absolute area under stimulus modulation curve = 4. 
+#for non rectified
+if phase_modulation<=0.5
+    q_normalisation=2/((1-phase_modulation)*π) #scaling factor to make absolute area under stimulus modulation curve = 4. 
+else
+    m=phase_modulation
+    q_normalisation=4/(4*m*sqrt(1-((m-1)/m)^2)+2*(m-1)asin((m-1)/m))
+end
+ITPCrange=(5.5,10.0)   
+
+freq_idxs=Vector{Int64}(undef,length(stim_rates)) #to store after first ITPC calculation. freq per tau.
+tuned_pro_stimrate_ITPCs=Array{Float64,2}(undef,length(taus),length(Condition_keys))
+tuned_pro_fourHz_ITPCs=Array{Float64,2}(undef,length(taus),length(Condition_keys))
+fourHzidx=19    
+@progress for (i_idx,interpolator) in enumerate(drive_interpolators)
+    global interpolators_global=interpolator
+    for (tidx,τ) in enumerate(taus)
+        @info tidx
+        p=ComponentArray(F=stim_rates[tidx], c=c, drive_amplitude=drive_amplitude, noise_selector=1, sampling_rate=phoneme_sampling_rate,modulation=phase_modulation,q=q_normalisation,noise_case_reference=1,τ=τ)
+        p.F=stim_rates[tidx] #tune each oscillator to the stimulus rate
+        results=Ensemble_CoupledOscillators_modulated_varystimrate(prob_func,time_range,p,u0,20,saveat)
+        ITPC,_,_,freqs,_=calculate_ITPC_CoupledOscillators_noisyrates(results,1/saveat,(5.5,10.0),(5.5,10.0))
+        if tidx==1
+            for j in eachindex(stim_rates)
+                freq_idxs[j]=Int64(findmin(abs.(freqs .- stim_rates[j]))[2])
+            end
+        end
+        tuned_pro_stimrate_ITPCs[tidx,i_idx]=ITPC[freq_idxs[tidx]].^2
+        tuned_pro_fourHz_ITPCs[tidx,i_idx]=ITPC[fourHzidx].^2
+    end
+end
+tuned_pro_itpc_plot=bar()
+for (c_idx,condition) in enumerate(Condition_keys)
+    bar!(tuned_pro_itpc_plot,stim_rates,tuned_pro_stimrate_ITPCs[:,c_idx],xlabel="Stimulus Rate (Hz)",ylabel="ITPC",label="$(condition) stim",size=(800,600),alpha=0.5);
+end
+display(tuned_pro_itpc_plot)
+
+
+#save each set of results as a csv in ./Results/Speech_rate_test/ with headings giving the condition names. and row labels the stim rate
+stim_rates
+using DelimitedFiles, DataFrames
+untuned_pro_stimrate_ITPCs_df=DataFrame(untuned_pro_stimrate_ITPCs, :auto)
+rename!(untuned_pro_stimrate_ITPCs_df, Symbol.(Condition_keys))
+#new first column giving stim rates
+untuned_pro_stimrate_ITPCs_df=insertcols(untuned_pro_stimrate_ITPCs_df, 1, :Stim_rate_Hz => stim_rates)
+CSV.write("./Results/Speech_rate_test/untuned_pro_stimrate_sqrITPCs.csv", untuned_pro_stimrate_ITPCs_df)
+
+function save_as_df_with_headings(data_array, column_names, row_names, filename)
+    df=DataFrame(data_array, :auto)
+    rename!(df, Symbol.(column_names))
+    df=insertcols(df, 1, :Stim_rate_Hz => row_names)
+    CSV.write(filename, df)
+end
+
+save_as_df_with_headings(tuned_pro_stimrate_ITPCs, Condition_keys, stim_rates, "./Results/Speech_rate_test/tuned_pro_stimrate_sqrITPCs.csv")
+save_as_df_with_headings(evoked_stimrate_ITPCs, Condition_keys, stim_rates, "./Results/Speech_rate_test/evoked_stimrate_sqrITPCs.csv")
+save_as_df_with_headings(stimrate_ITPCs, Condition_keys, stim_rates, "./Results/Speech_rate_test/slow_NGNMM_stimrate_sqrITPCs.csv")
+save_as_df_with_headings(fast_NGNMM_stimrate_ITPCs, Condition_keys, stim_rates, "./Results/Speech_rate_test/fast_NGNMM_stimrate_sqrITPCs.csv")
+
+#4 Hz ITPCs too:
+save_as_df_with_headings(untuned_pro_fourHz_ITPCs, Condition_keys, stim_rates, "./Results/Speech_rate_test/untuned_pro_fourHz_sqrITPCs.csv")
+save_as_df_with_headings(tuned_pro_fourHz_ITPCs, Condition_keys, stim_rates, "./Results/Speech_rate_test/tuned_pro_fourHz_sqrITPCs.csv")  
+save_as_df_with_headings(evoked_fourHz_ITPCs, Condition_keys, stim_rates, "./Results/Speech_rate_test/evoked_fourHz_sqrITPCs.csv")
+save_as_df_with_headings(fourHz_ITPCs, Condition_keys, stim_rates, "./Results/Speech_rate_test/slow_NGNMM_fourHz_sqrITPCs.csv")
+save_as_df_with_headings(fast_NGNMM_fourHz_ITPCs, Condition_keys, stim_rates, "./Results/Speech_rate_test/fast_NGNMM_fourHz_sqrITPCs.csv")
+
+
+
+
+
+### testing un stimulated slow NGNMM to se if it oscillates without drive:
+## slow NGNMM run: #with fixed drive input set to minimum of the phoneme drive. to see if it will go quiescent between phonemes.
+α=1/0.035 #1/a is 30ms
+k=0.105
+# C = 0.033#capacitance in Farads
+C = 0.066#capacitance in Farads
+vsyn=-10.0
+# η_0=21.5
+η_0=1.5
+# Δ=0.5
+Δ=0.25
+α_D=1/0.0056
+Π=15.0
+#Drive 
+phoneme_sampling_rate=44100
+drive_amplitude=η_0*DAR
+u0=ComponentArray(g_dot=0.0,g=0.82,Z=0.0+im*0.0, A_dot=0.0, A=0.0)
+time_range=(0.0,10.0)
+saveat=0.0001   
+p=ComponentArray(α=α,k=k,C=C,vsyn=vsyn,Δ=Δ, η_0=η_0,α_D=α_D,sampling_rate=phoneme_sampling_rate, drive_amplitude=-drive_amplitude,noise_selector=1,noise_case_reference=1, τ=1) 
+results=Ensemble_NoisyPhoneme_VaryStimRate(prob_func,time_range,p,u0,1,saveat)
+plot(abs.(results[1][3,:]))
+
+mean(interpolators_global[1][1:200000])
