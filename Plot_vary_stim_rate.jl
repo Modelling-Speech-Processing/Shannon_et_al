@@ -23,17 +23,18 @@ gr()
 #with the stdev over conditions as a ribbon. Using plot (i.e a line graph, with all models on the same plot)
 
 ##load the dataframes
-tuned_pro_stimrate_ITPCs_df=CSV.read("./Results/Speech_rate_test/tuned_pro_stimrate_sqrITPCs.csv",DataFrame)
-untuned_pro_stimrate_ITPCs_df=CSV.read("./Results/Speech_rate_test/untuned_pro_stimrate_sqrITPCs.csv",DataFrame)
-evoked_stimrate_ITPCs_df=CSV.read("./Results/Speech_rate_test/evoked_stimrate_sqrITPCs.csv",DataFrame)
-slow_NGNMM_stimrate_ITPCs_df=CSV.read("./Results/Speech_rate_test/slow_NGNMM_stimrate_sqrITPCs.csv",DataFrame)
-fast_NGNMM_stimrate_ITPCs_df=CSV.read("./Results/Speech_rate_test/fast_NGNMM_stimrate_sqrITPCs.csv",DataFrame)
+name_extension="15secondstimulus"
+tuned_pro_stimrate_ITPCs_df=CSV.read("./Results/Speech_rate_test/tuned_pro_stimrate_sqrITPCs_$(name_extension).csv",DataFrame)
+untuned_pro_stimrate_ITPCs_df=CSV.read("./Results/Speech_rate_test/untuned_pro_stimrate_sqrITPCs_$(name_extension).csv",DataFrame)
+evoked_stimrate_ITPCs_df=CSV.read("./Results/Speech_rate_test/evoked_stimrate_sqrITPCs_$(name_extension).csv",DataFrame)
+slow_NGNMM_stimrate_ITPCs_df=CSV.read("./Results/Speech_rate_test/slow_NGNMM_stimrate_sqrITPCs_$(name_extension).csv",DataFrame)
+fast_NGNMM_stimrate_ITPCs_df=CSV.read("./Results/Speech_rate_test/fast_NGNMM_stimrate_sqrITPCs_$(name_extension).csv",DataFrame)
 
-tuned_pro_4Hz_ITPCs_df=CSV.read("./Results/Speech_rate_test/tuned_pro_fourHz_sqrITPCs.csv",DataFrame)
-untuned_pro_4Hz_ITPCs_df=CSV.read("./Results/Speech_rate_test/untuned_pro_fourHz_sqrITPCs.csv",DataFrame)
-evoked_4Hz_ITPCs_df=CSV.read("./Results/Speech_rate_test/evoked_fourHz_sqrITPCs.csv",DataFrame)
-slow_NGNMM_4Hz_ITPCs_df=CSV.read("./Results/Speech_rate_test/slow_NGNMM_fourHz_sqrITPCs.csv",DataFrame)
-fast_NGNMM_4Hz_ITPCs_df=CSV.read("./Results/Speech_rate_test/fast_NGNMM_fourHz_sqrITPCs.csv",DataFrame)
+tuned_pro_4Hz_ITPCs_df=CSV.read("./Results/Speech_rate_test/tuned_pro_fourHz_sqrITPCs_$(name_extension).csv",DataFrame)
+untuned_pro_4Hz_ITPCs_df=CSV.read("./Results/Speech_rate_test/untuned_pro_fourHz_sqrITPCs_$(name_extension).csv",DataFrame)
+evoked_4Hz_ITPCs_df=CSV.read("./Results/Speech_rate_test/evoked_fourHz_sqrITPCs_$(name_extension).csv",DataFrame)
+slow_NGNMM_4Hz_ITPCs_df=CSV.read("./Results/Speech_rate_test/slow_NGNMM_fourHz_sqrITPCs_$(name_extension).csv",DataFrame)
+fast_NGNMM_4Hz_ITPCs_df=CSV.read("./Results/Speech_rate_test/fast_NGNMM_fourHz_sqrITPCs_$(name_extension).csv",DataFrame)
 
 #plot the data on a plot for stimrate and a plot for 4Hz itpcs, each model is a series.
 Plots.default(titlefontsize=16,legendfontsize=8,tickfontsize=9,guidefontsize=11)
@@ -49,7 +50,7 @@ tuned_pro_stimrate_ITPCs_df[:,1]
 #plot in one column width figure:
 one_column_size=figure_size_tuple(1, aspect_ratio=1.5)
 plot!(p_stimrateITPCs,size=one_column_size)
-savefig("vary_syllabic_rate_sr_ITPCs.pdf")
+savefig("15second_vary_syllabic_rate_sr_ITPCs.pdf")
 #format nicely:
 
 
@@ -61,7 +62,8 @@ savefig("vary_syllabic_rate_sr_ITPCs.pdf")
 
 
 
-#plot the 4Hz itpcs:
+#plot the 4Hz itpcs: DOES NOT WORK ANYMORE, WITH LONGER TIMESPAN< THE 4Hz freq idx changed.
+#so the data from the 15secondstimulus run has ITPCs at about 1.25Hz here, so all very low.
 p_4HzITPCs=plot(tuned_pro_4Hz_ITPCs_df[:,1], mean.(eachrow(tuned_pro_4Hz_ITPCs_df[:,2:end])), ribbon=std.(eachrow(tuned_pro_4Hz_ITPCs_df[:,2:end])), label="Tuned Pro", xlabel="Stimulus Rate (Hz)", ylabel="ITPC", title="4Hz ITPC vs Stimulus Rate", legend=:topleft)
 plot!(p_4HzITPCs, untuned_pro_4Hz_ITPCs_df[:,1], mean.(eachrow(untuned_pro_4Hz_ITPCs_df[:,2:end])), ribbon=std.(eachrow(untuned_pro_4Hz_ITPCs_df[:,2:end])), label="Untuned Pro")
 plot!(p_4HzITPCs, evoked_4Hz_ITPCs_df[:,1], mean.(eachrow(evoked_4Hz_ITPCs_df[:,2:end])), ribbon=std.(eachrow(evoked_4Hz_ITPCs_df[:,2:end])), label="Evoked")

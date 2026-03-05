@@ -2,6 +2,7 @@ using Pkg; Pkg.activate("$(pwd())")
 using NGNMM_NSP_paper_code
 using Statistics
 using ComponentArrays, OrdinaryDiffEq, Plots, Parameters, JLD2
+using LaTeXStrings
 
 
 condition="b" #which phoneme condition to use for the drive
@@ -10,6 +11,23 @@ noisestimratio=0.0 #which noise to stimulus ratio to use
 noise_filename="NoiseSequences60.csv" #which noise file to use
 
 global NGNMM_NSP_paper_code.interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+
+#Slow (C0066D025) run
+# set parameters
+α=1/0.035 #1/a is 30ms
+k=0.105
+# C = 0.033#capacitance in Farads
+C = 0.066#capacitance in Farads
+vsyn=-10.0
+# η_0=21.5
+η_0=1.5
+# Δ=0.5
+Δ=0.25
+α_D=1/0.0056
+Π=15.0
+DAR=12.2 #scaled phoneme DAR -> phoneme magnitude ~0.25, sine is 1. so *0.25.
+#Drive 
+phoneme_sampling_rate=44100
 
 #fast NGNMM model's response to each phoneme:
 # set parameters
@@ -92,3 +110,40 @@ plot(p)
 plot!(dpi=300,legend=nothing, xlabel=L"\textrm{peri\operatorname{-}onset~time~(s)}",ylabel=L"\textrm{firing~rate}")
 plot!(size=one_column_size)
 savefig("peri_onset_time_responses.pdf")
+
+
+using ColorSchemes,Colors
+Bang_wong_color_palette=[(230,159,0),(0,114,178),(0,158,115),(204,121,167),(86,180,233),(240,228,66),(0,0,0)]
+Bang_wong_color_palette_normalised=[(col[1]/255.0,col[2]/255.0,col[3]/255.0) for col in Bang_wong_color_palette]
+color_scheme=ColorScheme([Colors.RGB(col...) for col in Bang_wong_color_palette_normalised],"bang wong colorblind friendly")
+#font sizes:
+Plots.default(titlefontsize=16,legendfontsize=12,tickfontsize=9,guidefontsize=11)
+
+### plot mean response and transparent individual responses over stimulus onset window:
+response_plot=plot();
+response_times=range(-0.25,0.25,step=1/response_sr)
+for i in 1:20
+    plot!(response_plot,response_times,abs.(results[i][3,Int64((stim_times[1]-response_window)*response_sr):Int64(stim_times[1]*response_sr+response_window_samples)]),color=color_scheme[2],alpha=0.25,label="",linewidth=1,ylabel=L"\textrm{firing~rate}");
+end
+#add mean line:
+plot!(response_plot,response_times,mean([abs.(results[i][3,Int64((stim_times[1]-response_window)*response_sr):Int64(stim_times[1]*response_sr+response_window_samples)]) for i in 1:20]),color=:blue,alpha=1.0,label=nothing,linewidth=2.0,xlabel=L"\textrm{peri\operatorname{-}onset~time~(s)}",ylabel=L"\textrm{firing~rate}");
+plot(response_plot)
+
+
+## and another plot showing the mean phoneme drive here too.
+drive_plot=plot();
+drive_time_points=range(-0.25,0.25,step=1/44100)
+for i in 1:20
+    plot!(drive_plot,drive_time_points,NGNMM_NSP_paper_code.interpolators_global[i]((stim_times[1]-0.25)*44100:(stim_times[1]+0.25)*44100),color=color_scheme[1],alpha=0.25,label=nothing,linewidth=1,ylabel=L"\textrm{amplitude}");
+end
+plot!(drive_plot,drive_time_points,mean([NGNMM_NSP_paper_code.interpolators_global[i]((stim_times[1]-0.25)*44100:(stim_times[1]+0.25)*44100) for i in 1:20]),color=:orange2,alpha=1.0,label=nothing,linewidth=2.0,xlabel=L"\textrm{peri\operatorname{-}onset~time~(s)}",ylabel=L"\textrm{amplitude}");
+plot!(drive_plot,yticks=([0.0,0.1,0.2],[0.0,0.1,0.2]))
+plot(drive_plot)
+
+# both together
+one_column_size_tall=figure_size_tuple(1,aspect_ratio=1.2)
+
+plot((response_plot,drive_plot)...,layout=grid(2,1, heights=[0.75,0.25]), size=one_column_size_tall,dpi=300)
+
+# savefig("slow_NMM_peri_onset_time_responses_transparent_with_mean.pdf")
+savefig("fast_NMM_peri_onset_time_responses_transparent_with_mean.pdf")

@@ -3,35 +3,6 @@ using NGNMM_NSP_paper_code
 using Arrow, DataFrames, JLD2
 using Interpolations, ComponentArrays, Plots, LaTeXStrings
 
-"""
-    figure_size_tuple(cols; aspect_ratio=4/3)
-
-Calculates the (width, height) tuple for Plots.jl size attribute based on eNeuro standards.
-- cols: 1 (8.5cm), 1.5 (11.6cm), or 2 (17.6cm)
-- aspect_ratio: Width / Height (default 4/3)
-"""
-function figure_size_tuple(cols::Number; aspect_ratio=1.33)
-    # eNeuro standard widths in cm
-    widths_cm = Dict(
-        1   => 8.5,
-        1.5 => 11.6,
-        2   => 17.6
-    )
-    
-    if !haskey(widths_cm, cols)
-        error("Invalid column size. Use 1, 1.5, or 2.")
-    end
-
-    target_width_cm = widths_cm[cols]
-    
-    # Conversion: cm -> inches -> LaTeX points 
-    logical_dpi=100
-    width_px = (target_width_cm / 2.54) * 100
-    height_px = width_px / aspect_ratio
-    
-    return (round(Int, width_px), round(Int, height_px))
-end
-
 #font sizes:
 Plots.default(titlefontsize=16,legendfontsize=12,tickfontsize=9,guidefontsize=11)
 
@@ -215,8 +186,7 @@ quiver!(p4,[0.0],[0.0],quiver=([real(compute_mean_resultant(fast_NMM_PCMs))],[im
 clims = extrema(frequencies[1:60])
 h2 = scatter([0,0], [0,1], zcolor=[0,1], clims=clims,
                  xlims=(1,1.1), xshowaxis=false, yshowaxis=false, label="", c=:thermal, colorbar_title="Frequency (Hz)", grid=false);
-
-                 l=@layout [grid(2,2) a{0.01w}]
+l=@layout [grid(2,2) a{0.01w}]
 plot(p1,p2,p3,p4,h2,layout=l,right_margin=3Plots.mm,dpi=300,markersize=4,size=figure_size_tuple(2, aspect_ratio=1.3))
 savefig("PCM_comparison_4panel_twocolwidth.pdf")
 #format nicely:

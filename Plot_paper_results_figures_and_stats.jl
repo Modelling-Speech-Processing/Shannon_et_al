@@ -490,7 +490,7 @@ CSV.write("./ppaper_correlation_statistics_table_NGNMM_fast_SI.csv",df_NGNMM_fas
 
 for (i,model) in enumerate(models[3:end])
     df_model=DataFrame(Model=String[],NSR=Float64[],r=Float64[],CI_lower=Float64[],CI_upper=Float64[],p=Float64[],p_bonferroni=Float64[],p_FDR=Float64[])
-    model_index=i+1
+    model_index=i+2
     for n in 1:length(noisestimratios)
         push!(df_model,(model,noisestimratios[n],statistics[model_index,n,1,1],statistics[model_index,n,1,2],statistics[model_index,n,1,3],statistics[model_index,n,1,4],statistics[model_index,n,1,5],statistics[model_index,n,1,6]))
     end
@@ -619,9 +619,9 @@ for (i,model) in enumerate(evoked_model_data)
         fourth_lower_bounds=minimum(x->x^2,fourth_range_data,dims=1)[sorting_indxs]
 
 
-        # scatter!(p, time2pds, this_dar_array[i,sorting_indxs], label=labels_evkd[i], yerr=(this_dar_array[i,sorting_indxs]-lower_bounds,upper_bounds.-this_dar_array[i,sorting_indxs]), linewidth=2, xlabel="L (s)",color=color_scheme[4], smooth=true, markerstrokewidth=1,markershape=symbols[3],linestyle=linestyles[1],ylims=(0.0,0.55),
-        # legend=true)
-        # println("plotting both peak rate and peakenv in the same plot") removed peak env as per reviewer suggestion it is unbiophysical.
+        scatter!(p, time2pds, this_dar_array[i,sorting_indxs], label=labels_evkd[i], yerr=(this_dar_array[i,sorting_indxs]-lower_bounds,upper_bounds.-this_dar_array[i,sorting_indxs]), linewidth=2, xlabel="L (s)",color=color_scheme[4], smooth=true, markerstrokewidth=1,markershape=symbols[3],linestyle=linestyles[1],ylims=(0.0,0.55),
+        legend=true)
+        println("plotting both peak rate and peakenv in the same plot") #removed peak env as per reviewer suggestion it is unbiophysical.
         scatter!(p, time2pds, this_dar_array[4,sorting_indxs], label=labels_evkd[4], yerr=(this_dar_array[4,sorting_indxs]-fourth_lower_bounds,fourth_upper_bounds-this_dar_array[4,sorting_indxs]), linewidth=2, xlabel="L (s)",color=color_scheme[4], smooth=true, markerstrokewidth=1,markershape=symbols[1+3],linestyle=linestyles[2],ylims=(0.0,0.55),legend=true)
         push!(evoked_model_plots,p)
         break
