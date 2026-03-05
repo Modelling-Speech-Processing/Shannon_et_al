@@ -104,12 +104,13 @@ end
 function coupled_oscillator!(du, u, p, t)
     @unpack F, c, drive_amplitude, noise_selector, sampling_rate,q = p
     @unpack θ, r = u
-    # du.θ = 2*pi*F - c * q * ((interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude)/r) * sin(θ) 
-    du.θ = 2*pi*F - c * q * (((1+interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0))*drive_amplitude)/r) * sin(θ)  #+1 to stimulus to make sine wave strictly positive
+    du.θ = 2*pi*F - c * q * ((interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude)/r) * sin(θ) 
+    # du.θ = 2*pi*F - c * q * (((1+interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0))*drive_amplitude)/r) * sin(θ)  #+1 to stimulus to make sine wave strictly positive
     # du.θ = 2*pi*F - c * ((interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude)/r) * sin(θ/2) #for sin(1/2theta) run
     # du.θ = 2*pi*F - c * q * ((interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude)/r)# * sin(θ) #for no sin run
     # du.θ = 2*pi*F + c * ((interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude)/r)# * sin(θ) #for positive correction run
-    du.r = r*(1-r^2) + c * q * ((1+interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0))*drive_amplitude) * cos(θ)
+    du.r = r*(1-r^2) + c * q * ((interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0))*drive_amplitude) * cos(θ)
+    # du.r = r*(1-r^2) + c * q * ((1+interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0))*drive_amplitude) * cos(θ) #+1 to stimulus  to make sine wave strictly positive
     # du.r = r*(1-r^2) + c * q * (interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude) #* cos(θ) #for no sin no cos run
     # du.r = r*(1-r^2) - c * (interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude) * cos(θ) #for positivenegative correction run
     # du.r = r*(1-r^2) + c * (interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude) * cos(θ/2) #for sin(1/2theta) run 
@@ -121,7 +122,9 @@ function coupled_oscillator_modulated!(du, u, p, t)
     @unpack F, c, drive_amplitude, noise_selector, sampling_rate,modulation,q, noise_case_reference = p
     @unpack θ, r = u
     du.θ = 2*pi*F - c * q * ((interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude)/r) * (1*(1-modulation)+modulation*sin(θ)) #modulation of 1.0 means full phase modulation. 0.0 = no phase modulation.
+    # du.θ = 2*pi*F - c * q * ((1.0+interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude)/r) * (1*(1-modulation)+modulation*sin(θ)) #+1 to stimulus to make sine wave strictly positive
     du.r = r*(1-r^2) + c * q * (interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude) * (1*(1-modulation)+modulation*cos(θ)) 
+    # du.r = r*(1-r^2) + c * q * (1.0+interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude) * (1*(1-modulation)+modulation*cos(θ)) #+1 to stimulus to make sine wave strictly positive
     return nothing
 end
 
@@ -1161,7 +1164,7 @@ function calculate_ITPC_1overf_noise(vector_of_solutions,sampling_rate,timerange
         noise_scaling_factor=sqrt(rate_power/(noise_power*desired_signal_to_noise_ratio))
         scaled_noise=noises.*noise_scaling_factor
         noisy_rates=(rates[idx]).+(scaled_noise)
-        rates[idx]=noisy_rates
+    rates[idx]=noisy_rates
 
         fourier_coeffs_alltrials[idx]=rfft(abs.(rates[idx]))
         phase_unit_vectors[idx]=fourier_coeffs_alltrials[idx]./abs.(fourier_coeffs_alltrials[idx])
@@ -1440,8 +1443,8 @@ function get_concordance_correlation_coefficient(x, y)
 
     # Calculate concordance correlation coefficient
     ccc = (2 * ρ * sqrt(var_x) * sqrt(var_y)) / (var_x + var_y + (mean_x - mean_y)^2)
-    #replaced to return just the mean ITPC of the model ITPCs, for new figure. 
-    ccc=mean(y)
+    #can replace here vv to return just the mean ITPC of the model ITPCs, for new figure. 
+    # ccc=mean(y)
 
     return ccc
 end
