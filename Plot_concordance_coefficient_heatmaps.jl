@@ -221,6 +221,9 @@ clims=(0,1)
 noise_heatmap=heatmap([1,2,3,4,5,6,7,8],[1,2,3,4,5,6,7,8],CCCs[vcat([1,2,3],[6,7,8,9,10]),:,4]',clims=clims,xlabel="",ylabel=L"$\lambda$",cbar_title=L"$\rho$")
 plot!(noise_heatmap,xticks=([1,2,3,4,5,6,7,8],model_labels[1:end-1]),xrotation=60)
 plot!(noise_heatmap,yticks=([1,2,3,4,5,6,7,8],noisestimratios))
+#retrieve maximum CCC for evoked models:
+max_evoked_CCCs=maximum(CCCs[vcat([3]),:,4]',dims=1)
+max_evoked_CCCs=(CCCs[vcat([3]),:,4]')
 
 #plot just the NMM heatmaps against noise and drive strength:
 
@@ -238,6 +241,11 @@ end
 plot(NMM_heatmaps...)
 two_column_size=figure_size_tuple(2, aspect_ratio=3)
 
+#extract maximum CCC for each NMM:
+max_CCCs=[maximum(CCCs[i,:,:]) for i in [1,2]]
+
 plot(vcat(NMM_heatmaps,noise_heatmap)..., layout=(1,3),size=two_column_size.*2, dpi=300,bottom_margin=20Plots.mm,cbar_title=L"$\rho$")
 
 savefig("NMM_CCC_and_noiseheatmap.pdf")
+
+
