@@ -215,6 +215,9 @@ savefig("all_concordance_corr_coeffs.pdf")
 
 
 
+
+
+
 ### #plot a heatmap of all the models on x axis vs the noise level on the y axis:
 
 clims=(0,1)
@@ -222,10 +225,20 @@ noise_heatmap=heatmap([1,2,3,4,5,6,7,8],[1,2,3,4,5,6,7,8],CCCs[vcat([1,2,3],[6,7
 plot!(noise_heatmap,xticks=([1,2,3,4,5,6,7,8],model_labels[1:end-1]),xrotation=60)
 plot!(noise_heatmap,yticks=([1,2,3,4,5,6,7,8],noisestimratios))
 #retrieve maximum CCC for evoked models:
-max_evoked_CCCs=maximum(CCCs[vcat([3]),:,4]',dims=1)
-max_evoked_CCCs=(CCCs[vcat([3]),:,4]')
+max_evoked_CCCs=maximum(CCCs[vcat([6,7,8]),:,4]',dims=1)
+max_evoked_CCCs=(CCCs[vcat([6,7,8]),:,4]')
 
-#plot just the NMM heatmaps against noise and drive strength:
+
+#without peak env:
+model_labels_nopeakenv=["NMM slow" "NMM fast" "Phase Reset" "no Phase Reset" "evoked_derivative" "evoked_envelope" "evoked_peakrate" "EEG"]
+noise_heatmap_nopeakenv=heatmap([1,2,3,4,5,6,7],[1,2,3,4,5,6,7,8],CCCs[vcat([1,2,3],[6,7,8,10]),:,4]',clims=clims,xlabel="",ylabel=L"$\lambda$",cbar_title=L"$\rho$")
+plot!(noise_heatmap_nopeakenv,xticks=([1,2,3,4,5,6,7],model_labels_nopeakenv[1:end-1]),xrotation=60)
+plot!(noise_heatmap_nopeakenv,yticks=([1,2,3,4,5,6,7,8],noisestimratios))
+#retrieve maximum CCC for evoked models:
+max_evoked_CCCs=maximum(CCCs[vcat([7,8,10]),:,4]',dims=1)
+max_evoked_CCCs=(CCCs[vcat([7,8,10]),:,4]')
+
+CCCs
 
 NMM_heatmaps=[]
 j=1
@@ -244,8 +257,8 @@ two_column_size=figure_size_tuple(2, aspect_ratio=3)
 #extract maximum CCC for each NMM:
 max_CCCs=[maximum(CCCs[i,:,:]) for i in [1,2]]
 
-plot(vcat(NMM_heatmaps,noise_heatmap)..., layout=(1,3),size=two_column_size.*2, dpi=300,bottom_margin=20Plots.mm,cbar_title=L"$\rho$")
+plot(vcat(NMM_heatmaps,noise_heatmap_nopeakenv)..., layout=(1,3),size=two_column_size.*2, dpi=300,bottom_margin=20Plots.mm,cbar_title=L"$\rho$")
 
-savefig("NMM_CCC_and_noiseheatmap.pdf")
+savefig("NMM_CCC_and_noiseheatmap_nopeakenv.pdf")
 
 
