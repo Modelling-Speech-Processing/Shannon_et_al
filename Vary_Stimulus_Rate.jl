@@ -420,6 +420,7 @@ for condition in Condition_keys
 end
 
 taus=collect(range(0.25,5.0,length=20))
+taus=[4.0,5.0]
 stim_rates=[4*tau for tau in taus] #in Hz
 
 ##
@@ -454,6 +455,7 @@ saveat=0.0001
 
 # run short test to get the freqs vector out (it will be the same for all runs so only need to do the findall once
 τ=1
+search_bandwith=0.3#hz
 p=ComponentArray(α=α,k=k,C=C,vsyn=vsyn,Δ=Δ, η_0=η_0,α_D=α_D,sampling_rate=phoneme_sampling_rate, drive_amplitude=drive_amplitude,noise_selector=1,noise_case_reference=1, τ=τ) 
 results_test=Ensemble_NoisyPhoneme_VaryStimRate(prob_func,time_range,p,u0,20,saveat)
 ITPC_test,_,_,freqs_test,_=calculate_ITPC_1overf_noise(results_test,1/saveat,ITPCrange,p.C,p.vsyn,ITPCrange)
@@ -636,6 +638,31 @@ for (c_idx,condition) in enumerate(Condition_keys)
     bar!(tuned_pro_itpc_plot,stim_rates,tuned_pro_stimrate_ITPCs[:,c_idx],xlabel="Stimulus Rate (Hz)",ylabel="ITPC",label="$(condition) stim",size=(800,600),alpha=0.5);
 end
 display(tuned_pro_itpc_plot)
+
+
+#inspect ITPC vs frequency for the 20Hz case to show peak shift.
+p=ComponentArray(F=20.0, c=c, drive_amplitude=drive_amplitude, noise_selector=1, sampling_rate=phoneme_sampling_rate,modulation=phase_modulation,q=q_normalisation,noise_case_reference=1,τ=5.0)
+ITPC_stack=Array{Float64,2}(undef,length(freqs),length(drive_interpolators))
+@progress for (i_idx,interpolator) in enumerate(drive_interpolators)
+    global interpolators_global=interpolator
+    results=Ensemble_CoupledOscillators_modulated_varystimrate(prob_func,time_range,p,u0,20,saveat)
+    ITPC_stack[:,i_idx],_,_,freqs,_=calculate_ITPC_CoupledOscillators_noisyrates(results,1/saveat,ITPCrange,ITPCrange)
+end
+freq_idx_20Hz=findall(f -> abs(f - 20.0) <= 0.001, freqs)
+peak_range=findall(f -> abs(f - 20.0) <= search_bandwith, freqs)
+ITPC_to_get_peak_freq=mean(ITPC_stack[1:500,:],dims=2)[peak_range,1]
+
+
+Plots.default(titlefontsize=16,legendfontsize=8,tickfontsize=9,guidefontsize=11)
+peak_plot=vspan([20.0-search_bandwith, 20.0+search_bandwith], color=:green, alpha=0.3, label="Search Bandwidth")
+plot!(peak_plot,freqs[1:500],mean(ITPC_stack[1:500,:],dims=2),xlabel="Frequency (Hz)",ylabel="ITPC",label="mean ITPC",color=:blue)
+plot!(peak_plot,xlims=(17,26))
+#shaded region showing search bandwidth:
+#red dashed v line at 20Hz:
+vline!(peak_plot,[20.0], linestyle=:dash, color=:red, label="20Hz")
+one_column_size=figure_size_tuple(1, aspect_ratio=1.5)
+plot!(peak_plot,size=one_column_size,dpi=300,legend=:topright)
+savefig("peak_shift_example_20Hz.svg")
 
 #another run to get what happens above tau=5.
 higher_taus=collect(range(5.25,5.25,step=0.25))

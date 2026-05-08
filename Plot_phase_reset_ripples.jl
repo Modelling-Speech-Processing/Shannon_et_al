@@ -123,10 +123,32 @@ Plots.default(titlefontsize=16,legendfontsize=12,tickfontsize=9,guidefontsize=11
 response_plot=plot();
 response_times=range(-0.25,0.25,step=1/response_sr)
 for i in 1:20
-    plot!(response_plot,response_times,abs.(results[i][3,Int64((stim_times[1]-response_window)*response_sr):Int64(stim_times[1]*response_sr+response_window_samples)]),color=color_scheme[2],alpha=0.25,label="",linewidth=1,ylabel=L"\textrm{firing~rate}");
+    # plot!(response_plot,response_times,abs.(results[i][3,Int64((stim_times[1]-response_window)*response_sr):Int64(stim_times[1]*response_sr+response_window_samples)]),color=color_scheme[2],alpha=0.25,label="",linewidth=1,ylabel=L"\textrm{firing~rate}");
+    #firing rate instead!
+    # plot!(response_plot,response_times,get_firing_rate_NMM(results[i],p.C,p.vsyn)[1][Int64((stim_times[1]-response_window)*response_sr):Int64(stim_times[1]*response_sr+response_window_samples)],color=color_scheme[2],alpha=0.25,label="",linewidth=1,ylabel=L"\textrm{firing~rate}");
+    #plot g*vsyn instead, the synaptic current:
+    #current:
+    Isyn=get_synaptic_current_NMM(results[i],p.C,p.vsyn)[1][Int64((stim_times[1]-response_window)*response_sr):Int64(stim_times[1]*response_sr+response_window_samples)]
+    #subtract mean of pre-onset window:
+    Isyn=Isyn .- mean(Isyn[1:response_window_samples])
+    #divide by maximum abs amplitude:
+    Isyn=Isyn ./ maximum(abs.(Isyn))
+    plot!(response_plot,response_times,Isyn,color=color_scheme[2],alpha=0.25,label="",linewidth=1,ylabel=L"\textrm{normalised~synaptic~current~(a.u)}");
+    
 end
 #add mean line:
-plot!(response_plot,response_times,mean([abs.(results[i][3,Int64((stim_times[1]-response_window)*response_sr):Int64(stim_times[1]*response_sr+response_window_samples)]) for i in 1:20]),color=:blue,alpha=1.0,label=nothing,linewidth=2.0,xlabel=L"\textrm{peri\operatorname{-}onset~time~(s)}",ylabel=L"\textrm{firing~rate}");
+# plot!(response_plot,response_times,mean([abs.(results[i][3,Int64((stim_times[1]-response_window)*response_sr):Int64(stim_times[1]*response_sr+response_window_samples)]) for i in 1:20]),color=:blue,alpha=1.0,label=nothing,linewidth=2.0,xlabel=L"\textrm{peri\operatorname{-}onset~time~(s)}",ylabel=L"\textrm{firing~rate}");
+#mean firing rate instead!
+# plot!(response_plot,response_times,mean([get_firing_rate_NMM(results[i],p.C,p.vsyn)[1][Int64((stim_times[1]-response_window)*response_sr):Int64(stim_times[1]*response_sr+response_window_samples)] for i in 1:20]),color=:blue,alpha=1.0,label=nothing,linewidth=2.0,xlabel=L"\textrm{peri\operatorname{-}onset~time~(s)}",ylabel=L"\textrm{firing~rate}");
+#mean synaptic current instead!
+mean_Isyn=mean([get_synaptic_current_NMM(results[i],p.C,p.vsyn)[1][Int64((stim_times[1]-response_window)*response_sr):Int64(stim_times[1]*response_sr+response_window_samples)] for i in 1:20])
+#subtract mean of pre-onset window:
+mean_Isyn=mean_Isyn .- mean(mean_Isyn[1:response_window_samples])
+#divide by maximum abs amplitude:
+mean_Isyn=mean_Isyn ./ maximum(abs.(mean_Isyn))
+plot!(response_plot,response_times,mean_Isyn,color=:blue,alpha=1.0,label=nothing,linewidth=2.0,xlabel=L"\textrm{peri\operatorname{-}onset~time~(s)}",ylabel=L"\textrm{normalised~synaptic}"*"\n"*L"\textrm{current~}\textrm{(a.u.)}");
+
+plot!(response_plot,ylims=(-1,1))
 plot(response_plot)
 
 
@@ -147,3 +169,5 @@ plot((response_plot,drive_plot)...,layout=grid(2,1, heights=[0.75,0.25]), size=o
 
 # savefig("slow_NMM_peri_onset_time_responses_transparent_with_mean.pdf")
 savefig("fast_NMM_peri_onset_time_responses_transparent_with_mean.pdf")
+savefig("slow_NMM_peri_onset_time_synapticcurrent_transparent_with_mean.pdf")
+savefig("fast_NMM_peri_onset_time_synapticcurrent_transparent_with_mean.pdf")

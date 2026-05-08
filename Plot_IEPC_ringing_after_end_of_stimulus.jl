@@ -189,16 +189,32 @@ phases=angle.(hilbert_transforms)
 
 ##plot IEPC over time for 4Hz band only (it is band pass filtered to +-1Hz)
 using Statistics
-function moving_mean(data,window_size)
-    #without cumsum function:
-    smoothed_data=similar(data)
-    for i in 1:length(data)
-        if i<window_size
-            smoothed_data[i]=mean(data[1:i])
-        else
-            smoothed_data[i]=mean(data[i-window_size+1:i])
-        end
+function moving_mean_circular(data::AbstractVector, window_size::Integer)
+    n = length(data)
+    smoothed_data = similar(data)
+    
+    # A centered window requires an odd size to have an equal number of points on both sides
+    if iseven(window_size)
+        throw(ArgumentError("Window size must be odd for a perfectly centered window."))
     end
+    
+    half_win = window_size ÷ 2
+    
+    for i in 1:n
+        val_sum = zero(eltype(data))
+        
+        # Iterate over the relative centered window: [-half_win, ..., 0, ..., half_win]
+        for j in -half_win:half_win
+            # mod1(x, n) natively handles circular wrapping for 1-based indexing
+            # e.g., if n=100 and i+j = 0, idx becomes 100
+            # if i+j = 101, idx becomes 1
+            idx = mod1(i + j, n)
+            val_sum += data[idx]
+        end
+        
+        smoothed_data[i] = val_sum / window_size
+    end
+    
     @info size(smoothed_data)
     return smoothed_data 
 end
@@ -206,24 +222,24 @@ Plots.default(titlefontsize=16,legendfontsize=6,tickfontsize=9,guidefontsize=11)
 
 freq_range[2]
 four_hz_IEPC=abs.(mean(mean(exp.(im.*phases[:,2:2,1:20*10000]),dims=2)[:,1,:]',dims=2))
-plot(1/10000:1/10000:20.0,four_hz_IEPC,label="4Hz IEPC",lw=1)
+plot(1/10000:1/10000:20.0,four_hz_IEPC,label="4Hz IEPC",lw=1,color=:blue)
 #add a line at 7.3 seconds when the stimulus was switched off
 plot!([10.0,10.0],[0.0,1.0],color=:red,linewidth=1,linestyle =:dash, label="stim_off")
 #and at 5seconds when the stimulus starts:
-plot!([5.0,5.0],[0.0,1.0],color=:blue,linewidth=1,linestyle =:dot,label="stim_on")
-plot!(1/10000:1/10000:20.0,moving_mean(four_hz_IEPC[:,1],10000),label="4Hz IEPC smoothed",linewidth=1)
-plot!(dpi=300,xlabel=L"\textrm{time~(s)}", ylabel=L"\textrm{IEPC}")
+plot!([5.0,5.0],[0.0,1.0],color=:black,linewidth=1,linestyle =:dot,label="stim_on")
+smoothed_four_hz_IEPC=moving_mean_circular(four_hz_IEPC[:,1],12001)
+plot!(1/10000:1/10000:20.0,smoothed_four_hz_IEPC,label="4Hz IEPC smoothed",linewidth=2,color=:purple)
+plot!(dpi=300,xlabel=L"\textrm{time~(s)}", ylabel=L"\textrm{IEPC~~}4\textrm{Hz}")
 
 #size and save it:
 one_column_size=figure_size_tuple(1, aspect_ratio=1.0)
 plot!(size=one_column_size,dpi=300,legend=:topright)
 savefig("IEPC_4Hz_band.pdf")
+savefig("IEPC_4Hz_band.svg")
 #create a dummy plot to use for the legend, i want it to end up with a 2 column layout for the two plots
 #but first is the real plot,, then a blank space for the legend:
 # plot!(results[1][1].t,abs.(results[1][1][3,:]))
 # plot!(results[1][1].t,mean((filtered_trajectories[:,2,:]./maximum(filtered_trajectories[:,2,:]))',dims=2),label="mean 4Hz component",alpha=0.5)
-
-
 
 ## for IEPC spectrograms:
 
