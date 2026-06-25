@@ -1,5 +1,4 @@
-# Modelling-sharpness-specific-entrainment-to-speech-data-and-code
-Code and data for our work modelling sharpness-specific tuning of neural entrainment to speech.
+Code and data for our work modelling sharpness-specific tuning of neural entrainment to speech and speech tracking more generally.
 
 ## Julia version and packages
 This code uses Julia 1.10.3, and the following packages: Arrow v2.8.0, CSV v0.10.15, ColorSchemes v3.29.0, Colors v0.13.0, ComponentArrays v0.15.25, DSP v0.8.2, DataFrames v1.7.0, DelimitedFiles v1.9.1, DiffEqCallbacks v4.4.1, Distributions v0.25.118, FFTW v1.8.1, Interpolations v0.15.1, JLD2 v0.5.11, JSON v0.21.4, LaTeXStrings v1.4.0, MAT v0.10.7, OrdinaryDiffEq v6.92.0, Parameters v0.12.3, Plots v1.40.10, PowerLawNoise v0.0.1, WAV v1.2.0, LinearAlgebra, Random, Statistics v1.10.0. These are defined in the Project.toml file so you can create the julia project/environment using them.
