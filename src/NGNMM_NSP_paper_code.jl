@@ -1,17 +1,17 @@
 module NGNMM_NSP_paper_code
 
-# __precompile__(false)z
+# __precompile__(false)
 using FFTW, DSP, CSV, JSON, WAV, LinearAlgebra, Random, Interpolations, Statistics, WAV, Parameters, ComponentArrays, OrdinaryDiffEq, DelimitedFiles, Distributions, DataFrames, Arrow, JLD2, PowerLawNoise, Plots
 
 #Dynamical Systems Models
-export NMM_CA,NMM_PhonemeDrive_Noisy,Kuramoto_CA, Kuramoto_PhonemeDrive_Noisy, kuramoto_phase_reset_condition, kuramoto_phase_reset_effect!, cartesian_kuramoto
+export NMM_CA,NMM_PhonemeDrive_Noisy,Kuramoto_CA, Kuramoto_PhonemeDrive_Noisy, kuramoto_phase_reset_condition, kuramoto_phase_reset_effect!, cartesian_kuramoto, vary_noise_and_initial_conditions, vary_noise_and_initial_conditions_evokedmodel, vary_noise_and_initial_conditions_NGNMM
 #Stimuli Processing
 export narrowband_envelopes, store_envelopes!,interpolators, generate_drive_interpolators_specify_noise2stimulus_ratio, generate_drive_interpolators_specify_noise2stimulus_ratio_forsaving, select_and_modify_20_random_phonemes
 #Experiment Running Functions
 export vary_noise, Ensemble_NoisyPhoneme, get_ITPC_t2pd_correlation_varynoisestimratio_150Hz!, run_noise_tests_serial_varydriveamplituderatio
 #Data Analysis Functions
 export calculate_ITPC, get_synaptic_current_NMM, get_firing_rate_NMM, get_frequencies, get_sorting_indices, calculate_ITPC_1overf_noise
-export cos_activity
+export cos_activity, calculate_ITPC_CoupledOscillators_noisyrates, calculate_ITPC_EvokedModel_noisyrates
 
 export generate_arrow
 export coupled_oscillator!, oscillator_phase_reset_condition_up, oscillator_phase_reset_effect_up!, oscillator_phase_reset_condition_down, oscillator_phase_reset_effect_down!
@@ -25,8 +25,20 @@ export run_coupled_oscillator_modulated_noise_tests_serial_varydriveamplituderat
 export run_noise_tests_serial_varydriveamplituderatio_60trials_randinitcond, get_ITPC_t2pd_correlation_varynoisestimratio_150Hz_60trials_randinitcond!
 export run_noise_tests_serial_varydriveamplituderatio_60trials_randinitcond_1overf_noise, get_ITPC_t2pd_correlation_varynoisestimratio_150Hz_60trials_randinitcond_1overf_noise!
 #evoked models
-export alpha_kernel_ODE!, findpeaks, get_smooth_derivative, get_scaled_peakenv_impulses, get_scaled_peakrate_impulses
+export alpha_kernel_ODE!, findpeaks, get_smooth_derivative, get_scaled_peakenv_impulses, get_scaled_peakrate_impulses, get_unitary_peakenv_impulses
 export run_evoked_model_noise_tests_serial_varydriveamplituderatio_60trials_randinitcond, get_evoked_model_ITPC_t2pd_correlation_varynoisestimratio_150Hz_60trials_randinitcond!, calculate_ITPC_EvokedModel_noisyrates, Ensemble_EvokedModel, vary_noise_and_initial_conditions_evokedmodel
+const interpolators = Ref(Vector{Interpolations.Extrapolation{Float64, 1, ScaledInterpolation{Float64, 1, Interpolations.BSplineInterpolation{Float64, 1, Vector{Float64}, BSpline{Linear{Throw{OnGrid}}}, Tuple{Base.OneTo{Int64}}}, BSpline{Linear{Throw{OnGrid}}}, Tuple{StepRange{Int64, Int64}}}, BSpline{Linear{Throw{OnGrid}}}, Line{Nothing}}}(undef,20))
+global interpolators_global::Vector{Interpolations.Extrapolation{Float64, 1, ScaledInterpolation{Float64, 1, Interpolations.BSplineInterpolation{Float64, 1, Vector{Float64}, BSpline{Linear{Throw{OnGrid}}}, Tuple{Base.OneTo{Int64}}}, BSpline{Linear{Throw{OnGrid}}}, Tuple{StepRange{Int64, Int64}}}, BSpline{Linear{Throw{OnGrid}}}, Line{Nothing}}}
+
+export get_concordance_correlation_coefficient, figure_size_tuple
+
+include("./Phase_Concentration_Metric.jl")
+export get_evoked_model_PCM_across_60freqs_randinitcond, generate_sine_drive_interpolators_for_saving, gaussian_filter_and_hilbert_for_PCM
+export get_coupled_oscillator_PCM_across_60freqs_randinitcond, get_NGNMM_PCM_across_60freqs_randinitcond
+
+
+
+
 ## Dynamical Systems Models
 function NMM_CA(D,u,p,t)
     @unpack α,k,C,Δ,η_0,vsyn,drive_switch,α_D,Π = p
@@ -61,6 +73,10 @@ function NMM_PhonemeDrive_Noisy(D,u,p,t)
 
     #interpolators[NoiseSelector] chooses a given interpolator out of the previously constructed global interpolator vector (containing all the noise conditions and the given stimulus)
     D.A_dot=(α_D^2).*interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude-2*α_D*A_dot-(α_D^2)*A 
+  
+
+    # D.A_dot=(α_D^2)*(1.0 + interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0))*drive_amplitude-2*α_D*A_dot-(α_D^2)*A  #+1 to stimulus for sine drive in PCM calculations, to avoid negative stimulus.
+
     
     D.A=A_dot
     
@@ -78,7 +94,7 @@ end
 
 function oscillator_phase_reset_condition_down(u,t,integrator)
     u[1] - -pi 
-end
+end 
 
 function oscillator_phase_reset_effect_down!(integrator)
     # N=length(integrator.u.θs)
@@ -89,10 +105,12 @@ function coupled_oscillator!(du, u, p, t)
     @unpack F, c, drive_amplitude, noise_selector, sampling_rate,q = p
     @unpack θ, r = u
     du.θ = 2*pi*F - c * q * ((interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude)/r) * sin(θ) 
+    # du.θ = 2*pi*F - c * q * (((1+interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0))*drive_amplitude)/r) * sin(θ)  #+1 to stimulus to make sine wave strictly positive
     # du.θ = 2*pi*F - c * ((interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude)/r) * sin(θ/2) #for sin(1/2theta) run
     # du.θ = 2*pi*F - c * q * ((interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude)/r)# * sin(θ) #for no sin run
     # du.θ = 2*pi*F + c * ((interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude)/r)# * sin(θ) #for positive correction run
-    du.r = r*(1-r^2) + c * q * (interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude) * cos(θ)
+    du.r = r*(1-r^2) + c * q * ((interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0))*drive_amplitude) * cos(θ)
+    # du.r = r*(1-r^2) + c * q * ((1+interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0))*drive_amplitude) * cos(θ) #+1 to stimulus  to make sine wave strictly positive
     # du.r = r*(1-r^2) + c * q * (interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude) #* cos(θ) #for no sin no cos run
     # du.r = r*(1-r^2) - c * (interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude) * cos(θ) #for positivenegative correction run
     # du.r = r*(1-r^2) + c * (interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude) * cos(θ/2) #for sin(1/2theta) run 
@@ -104,7 +122,9 @@ function coupled_oscillator_modulated!(du, u, p, t)
     @unpack F, c, drive_amplitude, noise_selector, sampling_rate,modulation,q, noise_case_reference = p
     @unpack θ, r = u
     du.θ = 2*pi*F - c * q * ((interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude)/r) * (1*(1-modulation)+modulation*sin(θ)) #modulation of 1.0 means full phase modulation. 0.0 = no phase modulation.
+    # du.θ = 2*pi*F - c * q * ((1.0+interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude)/r) * (1*(1-modulation)+modulation*sin(θ)) #+1 to stimulus to make sine wave strictly positive
     du.r = r*(1-r^2) + c * q * (interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude) * (1*(1-modulation)+modulation*cos(θ)) 
+    # du.r = r*(1-r^2) + c * q * (1.0+interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude) * (1*(1-modulation)+modulation*cos(θ)) #+1 to stimulus to make sine wave strictly positive
     return nothing
 end
 
@@ -195,8 +215,7 @@ function store_envelopes!(d,condition,stim_path_dict)
    end
 end
 
-const interpolators = Ref(Vector{Interpolations.Extrapolation{Float64, 1, ScaledInterpolation{Float64, 1, Interpolations.BSplineInterpolation{Float64, 1, Vector{Float64}, BSpline{Linear{Throw{OnGrid}}}, Tuple{Base.OneTo{Int64}}}, BSpline{Linear{Throw{OnGrid}}}, Tuple{StepRange{Int64, Int64}}}, BSpline{Linear{Throw{OnGrid}}}, Line{Nothing}}}(undef,20))
-global interpolators_global::Vector{Interpolations.Extrapolation{Float64, 1, ScaledInterpolation{Float64, 1, Interpolations.BSplineInterpolation{Float64, 1, Vector{Float64}, BSpline{Linear{Throw{OnGrid}}}, Tuple{Base.OneTo{Int64}}}, BSpline{Linear{Throw{OnGrid}}}, Tuple{StepRange{Int64, Int64}}}, BSpline{Linear{Throw{OnGrid}}}, Line{Nothing}}}
+
 """
 Will make an "interpolators" array that contains 20 interpolations of the given stimulus with different noise before/after and during the stimulus. and put it in global variable Interpolators.
 This can then be used in the ensemble simulation via the interpolation selector variable in a prob_func
@@ -227,7 +246,7 @@ function generate_drive_interpolators_specify_noise2stimulus_ratio(stimulus_enve
         interpolators[][trial]=linear_interpolation(xs,Vector(trial_drive_input),extrapolation_bc=Line())
         #interpolators[trial]=interpolate(Vector(trial_drive_input),BSpline(Linear()))#,extrapolation_bc=Line())
     end
-    return interpolators[] #look into typed global
+    return interpolators[]
 end
 
 
@@ -254,7 +273,7 @@ function generate_drive_interpolators_specify_noise2stimulus_ratio_forsaving(sti
         drives[trial]=linear_interpolation(xs,Vector(trial_drive_input),extrapolation_bc=Line())
         #interpolators[trial]=interpolate(Vector(trial_drive_input),BSpline(Linear()))#,extrapolation_bc=Line())
     end
-    return drives #look into typed global
+    return drives
 end
 
 """
@@ -410,7 +429,7 @@ function get_ITPC_t2pd_correlation_varynoisestimratio_150Hz_60trials!(d,conditio
                 p.noise_selector=1
                 println("NSR: ",noisestimratio,"Noiseset: ",noise_filename," Test: ",idx)
                 # generate_drive_interpolators_specify_noise2stimulus_ratio(stimulus_envelope,noisestimratio,noise_filename)
-                global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                 println("running sim")
                 trialdata=Ensemble_NoisyPhoneme(vary_noise,time_range,p,u_init,20,saveat)
                 push!(all_60_trials,trialdata...)
@@ -487,7 +506,7 @@ function get_ITPC_t2pd_correlation_varynoisestimratio_150Hz_60trials_randinitcon
                 p.noise_selector=1
                 println("NSR: ",noisestimratio,"Noiseset: ",noise_filename," Test: ",idx)
                 # generate_drive_interpolators_specify_noise2stimulus_ratio(stimulus_envelope,noisestimratio,noise_filename)
-                global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                 println("running sim")
                 trialdata=Ensemble_NoisyPhoneme(vary_noise_and_initial_conditions_NGNMM,time_range,p,u_init,20,saveat)
                 push!(all_60_trials,trialdata...)
@@ -567,15 +586,15 @@ function get_ITPC_t2pd_correlation_varynoisestimratio_150Hz_60trials_randinitcon
                 # generate_drive_interpolators_specify_noise2stimulus_ratio(stimulus_envelope,noisestimratio,noise_filename)
                 # global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                 if stimulus_type=="envelope"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                 elseif stimulus_type=="derivative"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                     interpolators_global=get_smooth_derivative(interpolators_global,44100.0) 
                 elseif stimulus_type=="peakrate"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                     interpolators_global=get_scaled_peakrate_impulses(interpolators_global,44100.0;scale_range=(0.5,1.0))
                 elseif stimulus_type=="peakenvelope"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                     interpolators_global=get_scaled_peakenv_impulses(interpolators_global,44100.0;scale_range=(0.5,1.0))
                 else
                     error("Unknown stimulus type: $(stimulus_type), must be one of 'envelope', 'derivative', 'peakrate', or 'peakenvelope'.")
@@ -683,7 +702,7 @@ function get_coupled_oscillator_ITPC_t2pd_correlation_varynoisestimratio_150Hz!(
         for idx in 1:3
             println("NSR: ",noisestimratio," Test: ",idx)
             # interpolators[] = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
-            global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+            global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
             # generate_drive_interpolators_specify_noise2stimulus_ratio(stimulus_envelope,noisestimratio,noise_filename)
             
             #update parameters for this noise condition: DAR so that max stimulus amplitude is 1.0. and set c so that max phase correction is 0.7π
@@ -757,7 +776,7 @@ function get_coupled_oscillator_ITPC_t2pd_correlation_varynoisestimratio_150Hz_6
             for noise_filename in noisesets
                 p.noise_selector=1
                 println("NSR: ",noisestimratio,"Noise set: ",noise_filename," Test: ",idx)
-                global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                 
                 #update parameters for this noise condition: DAR so that max stimulus amplitude is 1.0. and set c so that max phase correction is 0.7π
                 max_stimulus_amplitude=maximum(maximum.(interpolators_global))
@@ -831,7 +850,7 @@ function get_coupled_oscillator_modulated_ITPC_t2pd_correlation_varynoisestimrat
             for noise_filename in noisesets
                 p.noise_selector=1
                 println("NSR: ",noisestimratio,"Noise set: ",noise_filename," Test: ",idx)
-                global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                 
                 #update parameters for this noise condition: DAR so that max stimulus amplitude is 1.0. and set c so that max phase correction is 0.7π
                 max_stimulus_amplitude=maximum(maximum.(interpolators_global))
@@ -910,15 +929,15 @@ function get_coupled_oscillator_modulated_ITPC_t2pd_correlation_varynoisestimrat
                 println("NSR: ",noisestimratio,"Noise set: ",noise_filename," Test: ",idx)
                 flush(stdout)
                 if stimulus_type=="envelope"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                 elseif stimulus_type=="derivative"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                     interpolators_global=get_smooth_derivative(interpolators_global,44100.0) 
                 elseif stimulus_type=="peakrate"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                     interpolators_global=get_scaled_peakrate_impulses(interpolators_global,44100.0;scale_range=(0.5,1.0))
                 elseif stimulus_type=="peakenvelope"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                     interpolators_global=get_scaled_peakenv_impulses(interpolators_global,44100.0;scale_range=(0.5,1.0))
                 else
                     error("Unknown stimulus type: $(stimulus_type), must be one of 'envelope', 'derivative', 'peakrate', or 'peakenvelope'.")
@@ -1014,15 +1033,15 @@ function get_evoked_model_ITPC_t2pd_correlation_varynoisestimratio_150Hz_60trial
 
                 #set stimulus based on type: either normal envelopes, or derivative or event based impulse trains (peak rate or peak envelope)
                 if stimulus_type=="envelope"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                 elseif stimulus_type=="derivative"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                     interpolators_global=get_smooth_derivative(interpolators_global,44100.0) 
                 elseif stimulus_type=="peakrate"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                     interpolators_global=get_scaled_peakrate_impulses(interpolators_global,44100.0;scale_range=(0.5,1.0))
                 elseif stimulus_type=="peakenvelope"
-                    global interpolators_global = jldopen("/user/work/as15635/input_data/Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
+                    global interpolators_global = jldopen("./Phoneme_Drives/drive_interpolators_$(condition)_test_$(idx)_NSR_$(noisestimratio)_$(split(noise_filename,".")[1]).jld2","r")["drives"]
                     interpolators_global=get_scaled_peakenv_impulses(interpolators_global,44100.0;scale_range=(0.5,1.0))
                 else
                     error("Unknown stimulus type: $(stimulus_type), must be one of 'envelope', 'derivative', 'peakrate', or 'peakenvelope'.")
@@ -1036,7 +1055,7 @@ function get_evoked_model_ITPC_t2pd_correlation_varynoisestimratio_150Hz_60trial
             sr=Int64(1/saveat)
             ITPC,_,_,frequencies,rates=calculate_ITPC_EvokedModel_noisyrates(all_60_trials,sr,ITPCrange,ITPCrange) #ITPCrange can now exclude first 500ms of stimulus as per O.Cucu paper.
             for_storage[idx]=ITPC[1:676] #frequencies up to 150Hz
-            #save the rates for each trial, for comparison across natural frequencies, and computation of congolmerate activity if desired.
+            #save the rates for each trial, for comparison across natural frequencies, and computation of conglomerate activity if desired.
             if save_traj
                 local name="Trajectories/condition_$(condition)_trial_$(idx)_F$(p.F)Hz_SNR05_c1_60randinitcond_seeded_noise_normalised_nonrectified_modulated_phasemod_$(p.modulation)_integralnormalised_coupled_oscillator_control_test_allnoises_NSR$(noisestimratio)_trajectories"
                 CSV.write(savepath*name*".csv",DataFrame(rates,:auto),writeheader=true)
@@ -1135,7 +1154,6 @@ function calculate_ITPC_1overf_noise(vector_of_solutions,sampling_rate,timerange
     freqs=collect(0:1.0/(wl/sr):(sr/2))
     for (idx,data) in enumerate(vector_of_solutions)
         rates[idx]=get_firing_rate_NMM(data,C,vsyn)[1][Int64(ITPCrange[1]*sr):Int64(ITPCrange[2]*sr)]#
-
         trialwise_seed=noise_seed+idx
         # noises=PowerLawNoise.noise(1.0, 0.0, length(rates[idx])) 
         noises=seeded_noise(trialwise_seed, 1.0, 0.0, length(rates[idx])) #1/f noise with specific seed, different over the 60 trials, but the same over external parameter sets.
@@ -1146,7 +1164,7 @@ function calculate_ITPC_1overf_noise(vector_of_solutions,sampling_rate,timerange
         noise_scaling_factor=sqrt(rate_power/(noise_power*desired_signal_to_noise_ratio))
         scaled_noise=noises.*noise_scaling_factor
         noisy_rates=(rates[idx]).+(scaled_noise)
-        rates[idx]=noisy_rates
+    rates[idx]=noisy_rates
 
         fourier_coeffs_alltrials[idx]=rfft(abs.(rates[idx]))
         phase_unit_vectors[idx]=fourier_coeffs_alltrials[idx]./abs.(fourier_coeffs_alltrials[idx])
@@ -1170,7 +1188,6 @@ function calculate_ITPC_CoupledOscillators_noisyrates(vector_of_solutions,sampli
         # rates[idx]=get_firing_rate_NMM(data,C,vsyn)[1][Int64(ITPCrange[1]*sr):Int64(ITPCrange[2]*sr)]# #from NGNMM implementation
         # rates[idx]=(mean(cos_activity(xytophase(data)),dims=1)[1,:].^2)[Int64(ITPCrange[1]*sr):Int64(ITPCrange[2]*sr)] #squared cos activity, mean across oscillators. the effective firing rate. a vector. #for kuramoto oscillators
         rates[idx]= coupled_oscillator_activity(data)[Int64(ITPCrange[1]*sr):Int64(ITPCrange[2]*sr)]#cos(theta).*r for coupled oscillator activity
-        
         trialwise_seed=noise_seed+idx
         # noises=PowerLawNoise.noise(1.0, 0.0, length(rates[idx])) 
         noises=seeded_noise(trialwise_seed, 1.0, 0.0, length(rates[idx])) #1/f noise with specific seed, different over the 60 trials, but the same over external parameter sets.
@@ -1355,7 +1372,7 @@ function get_scaled_peakenv_impulses(envelopes::Vector{T}, sampling_rate::Float6
         impulse_vector = zeros(length(sample_grid))
         # Set the peak locations to 1.0
         for (peak, loc) in zip(scaled_peaks, locations)
-            impulse_vector[loc] = peak  # Set peak rate impulse to the value of the derivative at the peak location
+            impulse_vector[loc] = peak  # Set peak envelope impulse to the value of the envelope amplitude at the peak location
         end
         # Interpolate the impulse vector
         peakenv_impulses[i] = linear_interpolation(StepRange(sample_grid), impulse_vector, extrapolation_bc=Line());
@@ -1364,6 +1381,39 @@ function get_scaled_peakenv_impulses(envelopes::Vector{T}, sampling_rate::Float6
     return peakenv_impulses
 end
 
+#for PCM drive creation.
+"""
+    get_unitary_peakenv_impulses(envelopes::Vector{T}, sampling_rate::Float64; scale_range=(0.5, 1.0)) where T <: Interpolations.Extrapolation
+    Takes in envelopes, finds the peaks in the envelopes,
+    and returns a vector of Interpolations.Extrapolation of impulse peak-envelope events.
+    The peak magnitudes are scaled to the range [1.0, 1.0].
+"""
+function get_unitary_peakenv_impulses(envelopes::Vector{T}, sampling_rate::Float64; scale_range=(1.0, 1.0)) where T <: Any
+    sample_grid= envelopes[1].itp.itp.parentaxes[1][1:end]  # Get the time grid from the first envelope
+    peakenv_impulses = Vector{T}(undef, length(envelopes))
+    for (i, envelope) in enumerate(envelopes) 
+        # Create a zero vector of the same length as the envelope
+        peaks,locations = findpeaks(envelope[:], 0.1)  # Threshold set to 0.1 #Vector of the interpolation created by [:]
+
+        # Scale the peak magnitudes to the specified range
+        if !isempty(peaks)
+            min_peak = minimum(peaks)
+            max_peak = maximum(peaks)
+            scaled_peaks = scale_range[1] .+ (peaks .- min_peak) .* (scale_range[2] - scale_range[1]) ./ (max_peak - min_peak)
+        else
+            scaled_peaks = Float64[]
+        end
+        impulse_vector = zeros(length(sample_grid))
+        # Set the peak locations to 1.0
+        for (peak, loc) in zip(scaled_peaks, locations)
+            impulse_vector[loc] = peak  # Set peak envelope impulse to the value of the envelope amplitude at the peak location
+        end
+        # Interpolate the impulse vector
+        peakenv_impulses[i] = linear_interpolation(StepRange(sample_grid), impulse_vector, extrapolation_bc=Line());
+    end
+
+    return peakenv_impulses
+end
 
 #for control cases
 function cos_activity(phase_data)
@@ -1371,6 +1421,32 @@ function cos_activity(phase_data)
 end
 function coupled_oscillator_activity(solution)
     return cos.(solution[1,:]).*solution[2,:]
+end
+
+
+#stats:
+function get_concordance_correlation_coefficient(x, y)
+    # Ensure x and y are vectors
+    x = vec(x)
+    y = vec(y)
+
+    # Calculate means
+    mean_x = mean(x)
+    mean_y = mean(y)
+
+    # Calculate variances
+    var_x = var(x;mean=mean_x)
+    var_y = var(y;mean=mean_y)
+
+    #calculate correlation
+    ρ=cor(x,y)
+
+    # Calculate concordance correlation coefficient
+    ccc = (2 * ρ * sqrt(var_x) * sqrt(var_y)) / (var_x + var_y + (mean_x - mean_y)^2)
+    #can replace here vv to return just the mean ITPC of the model ITPCs, for new figure. 
+    # ccc=mean(y)
+
+    return ccc
 end
 
 
@@ -1422,5 +1498,36 @@ function generate_arrow(name, data_path; force = false, compress = true)
     end
     return nothing
 end
+
+"""
+    figure_size_tuple(cols; aspect_ratio=4/3)
+
+Calculates the (width, height) tuple for Plots.jl size attribute based on eNeuro standards.
+- cols: 1 (8.5cm), 1.5 (11.6cm), or 2 (17.6cm)
+- aspect_ratio: Width / Height (default 4/3)
+"""
+function figure_size_tuple(cols::Number; aspect_ratio=1.33)
+    # eNeuro standard widths in cm
+    widths_cm = Dict(
+        1   => 8.5,
+        1.5 => 11.6,
+        2   => 17.6
+    )
+    
+    if !haskey(widths_cm, cols)
+        error("Invalid column size. Use 1, 1.5, or 2.")
+    end
+
+    target_width_cm = widths_cm[cols]
+    
+    # Conversion: cm -> inches -> LaTeX points 
+    logical_dpi=100
+    width_px = (target_width_cm / 2.54) * 100
+    height_px = width_px / aspect_ratio
+    
+    return (round(Int, width_px), round(Int, height_px))
+end
+
+
 
 end

@@ -8,21 +8,29 @@ using ProgressLogging, JLD2
 phoneme_sequence_envelopes=JSON.parsefile("PhonemeEnvelopes_allconditions.json")
 
 noise_names=["NoiseSequences60.csv","NoiseSequences60_3.csv","NoiseSequences60_old.csv"]
+# noise_names=["NoiseSequences60.csv"]
 
 
 noise_stimulus_ratios=[0.0,0.05,0.1,0.3,0.7,0.9,1.0]
+# noise_stimulus_ratios=[0.3]
 Condition_keys=["vowel","b","d","g","k","p","t","m","n","s","z","l","r","f","v"]
 
 #create the drive interpolators vector for each phoneme for each noise ratio and save it to a file for later use.
+#check for directory to store them, make one if not present:
+if !isdir("./Phoneme_Drives/")
+    mkdir("./Phoneme_Drives/")
+end
 
 # @progress for noise_stimulus_ratio in noise_stimulus_ratios
 for noise_name in noise_names
     @progress for phoneme in Condition_keys
-        for test in 1:3
-        stimulus_envelope=phoneme_sequence_envelopes[phoneme][test]
-        drives=generate_drive_interpolators_specify_noise2stimulus_ratio_forsaving(stimulus_envelope,noise_stimulus_ratios[1],noise_name)
-        noise_filename_short=split(noise_name,".")[1]
-        jldsave("./Phoneme_Drives/drive_interpolators_$(phoneme)_test_$(test)_NSR_$(noise_stimulus_ratios[1])_$(noise_filename_short).jld2";drives)
+        for nsr in noise_stimulus_ratios
+            for test in 1:3
+            stimulus_envelope=phoneme_sequence_envelopes[phoneme][test]
+            drives=generate_drive_interpolators_specify_noise2stimulus_ratio_forsaving(stimulus_envelope,nsr,noise_name)
+            noise_filename_short=split(noise_name,".")[1]
+            jldsave("./Phoneme_Drives/drive_interpolators_$(phoneme)_test_$(test)_NSR_$(nsr)_$(noise_filename_short).jld2";drives)
+            end
         end
     end
 end
