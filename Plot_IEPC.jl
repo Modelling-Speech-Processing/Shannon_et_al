@@ -176,6 +176,10 @@ for i in 1:size(segmented_phase_data_reshaped,1) #for each frequency
     end
 end
 
+
+####
+#PLOT FIGURE 9
+####
 #plot the ITPCs across frequencies and time points:
 # p_ITPCs=heatmap(range(-0.25,0.25,step=1/response_sr),freq_range,ITPCs,color=:viridis, xlabel=L"\textrm{peri\operatorname{-}onset~time~(s)}", ylabel=L"\textrm{frequency~(Hz)}", title=L"\textrm{ITPC~across~phoneme~onsets}",dpi=300)
 p_ITPCs=heatmap(range(-0.25,0.25,step=1/response_sr),freq_range,ITPCs,color=:viridis, xlabel="", ylabel=L"\textrm{frequency~(Hz)}", title="",dpi=300,cbar_title=L"$\operatorname{IEPC}$")
@@ -187,6 +191,14 @@ ITPCs_minus_baseline_all_phonemes=ITPCs .- baseline_ITPCs_all_phonemes
 ITPCs_minus_baseline_all_phonemes[ITPCs_minus_baseline_all_phonemes .< 0.0] .= 0.0
 # p_ITPCs_minus_baseline_all_phonemes=heatmap(range(-0.25,0.25,step=1/response_sr),freq_range,ITPCs_minus_baseline_all_phonemes,color=:viridis, xlabel=L"\textrm{peri\operatorname{-}onset~time~(s)}", ylabel=L"\textrm{frequency~(Hz)}", title=L"\textrm{ITPC~minus~baseline}",dpi=300)
 p_ITPCs_minus_baseline_all_phonemes=heatmap(range(-0.25,0.25,step=1/response_sr),freq_range,ITPCs_minus_baseline_all_phonemes,color=:viridis, xlabel=L"\textrm{peri\operatorname{-}onset~time~(s)}", ylabel=L"\textrm{frequency~(Hz)}", title="",dpi=300,cbar_title=L"$\operatorname{IEPC}$")
+
+#plot all phoneme case and baseline removed all phoneme case together.
+plot(p_ITPCs,p_ITPCs_minus_baseline_all_phonemes,layout=grid(2,1),size=figure_size_tuple(1,aspect_ratio=0.7),dpi=300,margin=2Plots.mm)
+savefig("IEPC_all_phonemes.pdf")
+
+###
+#OTHER PLOTS/Tests not in paper:
+###
 
 ## caclulate ITPCs from just the very first phoneme to see transient response from noise to stimulus application.
 first_phoneme_phase_data=segmented_phase_data_reshaped[:,1:17:end,:] #first 20 segments are the first phoneme across the 20 trajectories.
@@ -239,6 +251,3 @@ plot(first_phoneme_trajectories')
 
 
 
-#plot all phoneme case and baseline removed all phoneme case together.
-plot(p_ITPCs,p_ITPCs_minus_baseline_all_phonemes,layout=grid(2,1),size=figure_size_tuple(1,aspect_ratio=0.7),dpi=300,margin=2Plots.mm)
-savefig("IEPC_all_phonemes.pdf")

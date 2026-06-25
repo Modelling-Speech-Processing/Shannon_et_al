@@ -75,7 +75,7 @@ response_times=range(-0.25,0.25,step=1/response_sr)
 plot(response_times,responses[5],label="single trial")
 plot!(response_times,mean(responses),label="mean response")
 stimulus_time_points=range(-0.25,0.25,step=1/44100)
-plot!(stimulus_time_points,interpolators_global[1]((stim_times[2]-0.25)*44100:stim_times[3]*44100),label="example drive")
+plot!(stimulus_time_points,NGNMM_NSP_paper_code.interpolators_global[1]((stim_times[2]-0.25)*44100:stim_times[3]*44100),label="example drive")
 plot!(legend=:bottomright)
 plot!(ylabel=L"\textrm{firing~rate}", xlabel=L"\textrm{peri\operatorname{-}onset~time~(s)}")
 
@@ -85,7 +85,7 @@ plot!(size=one_column_size,legend=:outertopright,dpi=300,xticks=([-0.2,0,0.2],[-
 savefig("phase_reset_ripples.pdf")
 
 
-interpolators_global[1]((stim_times[1]-0.25)*44100:stim_times[2]*44100)
+NGNMM_NSP_paper_code.interpolators_global[1]((stim_times[1]-0.25)*44100:stim_times[2]*44100)
 for i in 1:20
     for j in 1:17
         println(((i-1)*17)+j)
@@ -99,7 +99,7 @@ for i in 1:20
     init_conds[i]=results[i][3,Int64(5.0*response_sr)]
     # init_conds[i]=results[i][3,1]#,Int64(5.0*response_sr)]
 end
-scatter!(init_conds,xlims=(-1,1),ylims=(-1,1))
+scatter(init_conds,xlims=(-1,1),ylims=(-1,1))
 
 plot(abs.(results[1][3,:]))
 p=plot()
@@ -122,6 +122,8 @@ Plots.default(titlefontsize=16,legendfontsize=12,tickfontsize=9,guidefontsize=11
 ### plot mean response and transparent individual responses over stimulus onset window:
 response_plot=plot();
 response_times=range(-0.25,0.25,step=1/response_sr)
+#redefine p
+p=ComponentArray(α=α,k=k,C=C,vsyn=vsyn,Δ=Δ, η_0=η_0,α_D=α_D,sampling_rate=phoneme_sampling_rate, drive_amplitude=drive_amplitude,noise_selector=1,noise_case_reference=1) 
 for i in 1:20
     # plot!(response_plot,response_times,abs.(results[i][3,Int64((stim_times[1]-response_window)*response_sr):Int64(stim_times[1]*response_sr+response_window_samples)]),color=color_scheme[2],alpha=0.25,label="",linewidth=1,ylabel=L"\textrm{firing~rate}");
     #firing rate instead!
@@ -167,6 +169,8 @@ one_column_size_tall=figure_size_tuple(1,aspect_ratio=1.2)
 
 plot((response_plot,drive_plot)...,layout=grid(2,1, heights=[0.75,0.25]), size=one_column_size_tall,dpi=300)
 
+
+#run with the NMM parameters at the start set to the fast or slow sets to get figures 7 and 8 respectively.
 # savefig("slow_NMM_peri_onset_time_responses_transparent_with_mean.pdf")
 savefig("fast_NMM_peri_onset_time_responses_transparent_with_mean.pdf")
 savefig("slow_NMM_peri_onset_time_synapticcurrent_transparent_with_mean.pdf")
