@@ -106,7 +106,7 @@ end
 
 
 
-#Experimental Data:
+##Experimental Data:
 oana_data=matread("./ITPC_peakder_condition.mat")
 oana_ITPCs=oana_data["meanitc4_cond"]
 sorted_oana_ITPCs=oana_ITPCs[get_sorting_indices("./")]
@@ -117,7 +117,7 @@ time2pds=Frequency_varied_phasereset_data[1][1]["noisestimratio: 0.1"]["sortedIT
 ########################
 ########################
 ########################
-# exploring scatters vs t2pd for each drive setting.
+## exploring scatters vs t2pd for each drive setting.
 ########################
 ########################
 ########################
@@ -370,7 +370,7 @@ end
 ########################
 ########################
 ########################
-# getting all correlations, and p values, CI's, and corrected p values for every result. will tabulate in SI.
+## getting all correlations, and p values, CI's, and corrected p values for every result. will tabulate in SI.
 # using the fourHzITPCS_DARfinaldim data object.
 ########################
 ########################
@@ -502,7 +502,7 @@ end
 ############################
 ############################
 ############################
-# Plot the Scatters for the DAR=12.2 and NSR=0.9 case for each model in  a row BUT WITH SQUARED ITPC as in Oanas data.: MAIN RESULT FIGURE.
+## Plot the Scatters for the DAR=12.2 and NSR=0.9 case for each model in  a row BUT WITH SQUARED ITPC as in Oanas data.: MAIN RESULT FIGURE.
 ##############################
 ############################
 #############################
@@ -577,7 +577,7 @@ savefig(tosave,"./phonemepaper_mainresultfig_v2.pdf")
 ############################
 ############################
 ############################
-# figure 2: evoked model results"
+## figure 2: evoked model results"
 ##############################
 ############################
 #############################
@@ -650,7 +650,7 @@ savefig(tosave,"./ppaper_combined_main_results.pdf")
 ##############################
 ##############################
 ##############################
-# plotting similar, but on x axis is the phonemes, and across in rows are the models, lines connecting each models points so you can see if they overlap or are just a shift of each other.
+## plotting similar, but on x axis is the phonemes, and across in rows are the models, lines connecting each models points so you can see if they overlap or are just a shift of each other.
 ##############################
 ##############################
 ##############################
@@ -732,7 +732,7 @@ savefig(tosave,"./ppaper_ITPC_scatter_phonemex.pdf")
 ##############
 ##############
 ##############
-#final modulation and frequency vary plots. just want to plot the mean ITPC across conditions as we vary each parameter. 
+## final modulation and frequency vary plots. just want to plot the mean ITPC across conditions as we vary each parameter. 
 ##############
 ##############
 ##############
@@ -881,7 +881,7 @@ savefig(tosave,"./ppaper_modulation_frequency_vary.pdf")
 ##########################
 ##########################
 ##########################
-#evaluating mean 4Hz ITPC over phonemes for each model across λ (Noise-stimulus-ratios).
+## evaluating mean 4Hz ITPC over phonemes for each model across λ (Noise-stimulus-ratios).
 ##########################
 ##########################
 ##########################
@@ -1030,7 +1030,7 @@ savefig(tosave,"./ppaper_varynsr_mean_ITPC_0_1_yrange_v2.pdf")
 ###############################
 ###############################
 ###############################
-#now plotting the effect of drive strength on the two NGNMM models' mean 4Hz ITPCs across phonemes. Same as we did for the noisestimratios but for the driveamplituderatios.
+## now plotting the effect of drive strength on the two NGNMM models' mean 4Hz ITPCs across phonemes. Same as we did for the noisestimratios but for the driveamplituderatios.
 ###############################
 ###############################
 ###############################

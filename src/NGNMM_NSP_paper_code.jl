@@ -5,10 +5,14 @@ using FFTW, DSP, CSV, JSON, WAV, LinearAlgebra, Random, Interpolations, Statisti
 
 #Dynamical Systems Models
 export NMM_CA,NMM_PhonemeDrive_Noisy,Kuramoto_CA, Kuramoto_PhonemeDrive_Noisy, kuramoto_phase_reset_condition, kuramoto_phase_reset_effect!, cartesian_kuramoto, vary_noise_and_initial_conditions, vary_noise_and_initial_conditions_evokedmodel, vary_noise_and_initial_conditions_NGNMM
+#for PCM testing:
+export NMM_PhonemeDrive_Noisy_plus1_for_sine, coupled_oscillator_modulated_plus1_for_sine!
 #Stimuli Processing
 export narrowband_envelopes, store_envelopes!,interpolators, generate_drive_interpolators_specify_noise2stimulus_ratio, generate_drive_interpolators_specify_noise2stimulus_ratio_forsaving, select_and_modify_20_random_phonemes
 #Experiment Running Functions
 export vary_noise, Ensemble_NoisyPhoneme, get_ITPC_t2pd_correlation_varynoisestimratio_150Hz!, run_noise_tests_serial_varydriveamplituderatio
+#for PCM testing:
+export Ensemble_CoupledOscillators_modulated_PCM, Ensemble_NoisyPhoneme_PCM
 #Data Analysis Functions
 export calculate_ITPC, get_synaptic_current_NMM, get_firing_rate_NMM, get_frequencies, get_sorting_indices, calculate_ITPC_1overf_noise
 export cos_activity, calculate_ITPC_CoupledOscillators_noisyrates, calculate_ITPC_EvokedModel_noisyrates
@@ -82,6 +86,30 @@ function NMM_PhonemeDrive_Noisy(D,u,p,t)
     
 end
 
+function NMM_PhonemeDrive_Noisy_plus1_for_sine(D,u,p,t)
+    @unpack α,k,C,Δ,η_0,vsyn,α_D, sampling_rate, drive_amplitude, noise_selector, noise_case_reference = p
+    @unpack g_dot, g, Z, A_dot, A = u #A is drive 
+    
+    #u[1] is g', 
+    D.g_dot = (α^2)*(k/(C*pi)) * ((1-(abs(Z)^2))/(1+Z+conj(Z)+(abs(Z)^2))) - (2*α)*g_dot - (α^2)*g
+    
+    #u[2] is g
+    D.g = g_dot
+       
+    #u[3] is Z
+    D.Z = (1/C) * (-im*(((Z-1)^2)/2) + (((Z+1)^2)/2)*(-Δ+im*(η_0+A)+im*vsyn*g) - (((Z^2)-1)/2)*g)
+
+    #interpolators[NoiseSelector] chooses a given interpolator out of the previously constructed global interpolator vector (containing all the noise conditions and the given stimulus)
+    # D.A_dot=(α_D^2).*interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude-2*α_D*A_dot-(α_D^2)*A 
+  
+
+    D.A_dot=(α_D^2)*(1.0 + interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0))*drive_amplitude-2*α_D*A_dot-(α_D^2)*A  #+1 to stimulus for sine drive in PCM calculations, to avoid negative stimulus.
+
+    
+    D.A=A_dot
+    
+end
+
 #coupled oscillator control case:
 function oscillator_phase_reset_condition_up(u,t,integrator)
     u[1] - pi
@@ -125,6 +153,17 @@ function coupled_oscillator_modulated!(du, u, p, t)
     # du.θ = 2*pi*F - c * q * ((1.0+interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude)/r) * (1*(1-modulation)+modulation*sin(θ)) #+1 to stimulus to make sine wave strictly positive
     du.r = r*(1-r^2) + c * q * (interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude) * (1*(1-modulation)+modulation*cos(θ)) 
     # du.r = r*(1-r^2) + c * q * (1.0+interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude) * (1*(1-modulation)+modulation*cos(θ)) #+1 to stimulus to make sine wave strictly positive
+    return nothing
+end
+
+# has a discontinuity when modulation makes the stimulus correction always positive.
+function coupled_oscillator_modulated_plus1_for_sine!(du, u, p, t)
+    @unpack F, c, drive_amplitude, noise_selector, sampling_rate,modulation,q, noise_case_reference = p
+    @unpack θ, r = u
+    # du.θ = 2*pi*F - c * q * ((interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude)/r) * (1*(1-modulation)+modulation*sin(θ)) #modulation of 1.0 means full phase modulation. 0.0 = no phase modulation.
+    du.θ = 2*pi*F - c * q * ((1.0+interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude)/r) * (1*(1-modulation)+modulation*sin(θ)) #+1 to stimulus to make sine wave strictly positive
+    # du.r = r*(1-r^2) + c * q * (interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude) * (1*(1-modulation)+modulation*cos(θ)) 
+    du.r = r*(1-r^2) + c * q * (1.0+interpolators_global[Int64(noise_selector)](t*sampling_rate+1.0)*drive_amplitude) * (1*(1-modulation)+modulation*cos(θ)) #+1 to stimulus to make sine wave strictly positive
     return nothing
 end
 
@@ -335,6 +374,17 @@ end
 
 function Ensemble_NoisyPhoneme(prob_func,timerange,p,u0,trajectories,saveat)
     model=NMM_PhonemeDrive_Noisy
+    #create ensemble ODE problem using NMM_PhonemeDrive as the model & the given prob_func.
+    prob=ODEProblem(model,u0,timerange,p)
+    EnsembleProb=EnsembleProblem(prob,prob_func=prob_func)
+
+    #solve for given number of trajectories
+    results=solve(EnsembleProb,EnsembleThreads(),trajectories=trajectories,saveat=saveat)
+    return(results)
+end
+
+function Ensemble_NoisyPhoneme_PCM(prob_func,timerange,p,u0,trajectories,saveat)
+    model=NMM_PhonemeDrive_Noisy_plus1_for_sine
     #create ensemble ODE problem using NMM_PhonemeDrive as the model & the given prob_func.
     prob=ODEProblem(model,u0,timerange,p)
     EnsembleProb=EnsembleProblem(prob,prob_func=prob_func)
@@ -681,6 +731,19 @@ function Ensemble_CoupledOscillators(prob_func,timerange,p,u0,trajectories,savea
 end
 function Ensemble_CoupledOscillators_modulated(prob_func,timerange,p,u0,trajectories,saveat)
     model=coupled_oscillator_modulated!
+    #create ensemble ODE problem using NMM_PhonemeDrive as the model & the given prob_func.
+    callback_up=ContinuousCallback(oscillator_phase_reset_condition_up, oscillator_phase_reset_effect_up!)
+    callback_down=ContinuousCallback(oscillator_phase_reset_condition_down, oscillator_phase_reset_effect_down!)
+    cb=CallbackSet(callback_up,callback_down)
+    prob=ODEProblem(model,u0,timerange,p)
+    EnsembleProb=EnsembleProblem(prob,prob_func=prob_func)
+    #solve for given number of trajectories
+    results=solve(EnsembleProb,EnsembleThreads(),alg=Tsit5(),trajectories=trajectories,saveat=saveat,callback=cb)
+    return(results)
+end
+
+function Ensemble_CoupledOscillators_modulated_PCM(prob_func,timerange,p,u0,trajectories,saveat)
+    model=coupled_oscillator_modulated_plus1_for_sine!
     #create ensemble ODE problem using NMM_PhonemeDrive as the model & the given prob_func.
     callback_up=ContinuousCallback(oscillator_phase_reset_condition_up, oscillator_phase_reset_effect_up!)
     callback_down=ContinuousCallback(oscillator_phase_reset_condition_down, oscillator_phase_reset_effect_down!)

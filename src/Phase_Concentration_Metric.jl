@@ -77,9 +77,9 @@ function get_coupled_oscillator_PCM_across_60freqs_randinitcond(p,u_init,time_ra
         println("running sim")
         flush(stdout)
         if stimulus_idx==3 #to match the cut to 50 frequencies above. #no longer cut.
-            trialdata=Ensemble_CoupledOscillators_modulated(vary_noise_and_initial_conditions_and_natfreq,time_range,p,u_init,20,saveat)        
+            trialdata=Ensemble_CoupledOscillators_modulated_PCM(vary_noise_and_initial_conditions_and_natfreq,time_range,p,u_init,20,saveat)        
         else
-            trialdata=Ensemble_CoupledOscillators_modulated(vary_noise_and_initial_conditions_and_natfreq,time_range,p,u_init,20,saveat)
+            trialdata=Ensemble_CoupledOscillators_modulated_PCM(vary_noise_and_initial_conditions_and_natfreq,time_range,p,u_init,20,saveat)
         end
         push!(all_60_trials,trialdata...)
         push!(all_stimuli,interpolators_global...)
@@ -194,9 +194,9 @@ function get_NGNMM_PCM_across_60freqs_randinitcond(p,u_init,time_range,PCMrange,
         println("running sim")
         flush(stdout)
         if stimulus_idx==3 #to match the cut to 50 frequencies above. #no longer cut.
-                trialdata=Ensemble_NoisyPhoneme(vary_noise_and_initial_conditions_NGNMM,time_range,p,u_init,20,saveat)
+                trialdata=Ensemble_NoisyPhoneme_PCM(vary_noise_and_initial_conditions_NGNMM,time_range,p,u_init,20,saveat)
         else
-                trialdata=Ensemble_NoisyPhoneme(vary_noise_and_initial_conditions_NGNMM,time_range,p,u_init,20,saveat)
+                trialdata=Ensemble_NoisyPhoneme_PCM(vary_noise_and_initial_conditions_NGNMM,time_range,p,u_init,20,saveat)
         end
         push!(all_60_trials,trialdata...)
         push!(all_stimuli,interpolators_global...)

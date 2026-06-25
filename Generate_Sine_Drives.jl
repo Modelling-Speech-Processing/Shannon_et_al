@@ -7,10 +7,10 @@ using ProgressLogging, JLD2
 # noise_names=["NoiseSequences60.csv","NoiseSequences60_3.csv","NoiseSequences60_old.csv"]
 # noise_stimulus_ratios=[0.0,0.05,0.1,0.3,0.7,0.9,1.0]
 
-# frequency_range=(2.0,15.0) #Hz
-frequency_range=(0.5,30.0) #Hz testing wider range
-# sampling_rate=44100.0 #Hz
-sampling_rate=5000.0 #Hz
+frequency_range=(2.0,15.0) #Hz
+
+sampling_rate=44100.0 #Hz
+
 
 #create the drive interpolators vector for each phoneme for each noise ratio and save it to a file for later use.
 #check for directory to store them, make one if not present:
@@ -26,8 +26,7 @@ for test in 1:3
 end
 
 for test in 1:3
-    # if isfile("./Sine_Drives/drive_interpolators_$(test).jld2")
-    if isfile("./Sine_Drives/wide_drive_interpolators_$(test).jld2")
+    if isfile("./Sine_Drives/drive_interpolators_$(test).jld2")
         println("File exists")
     else
         println("File does not exist")

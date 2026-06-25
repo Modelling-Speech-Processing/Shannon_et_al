@@ -6,7 +6,6 @@ using Interpolations, ComponentArrays, Plots, LaTeXStrings
 #font sizes:
 Plots.default(titlefontsize=16,legendfontsize=12,tickfontsize=9,guidefontsize=11)
 
-
 frequencies=collect(range(2,15.0,length=60)) #60 frequencies between 2 and 15 Hz
 sine_path1="/Users/as15635/Documents/Projects/Shannon_et_al/Sine_Drives/drive_interpolators_1.jld2"
 sine_path2="/Users/as15635/Documents/Projects/Shannon_et_al/Sine_Drives/drive_interpolators_2.jld2"
@@ -21,8 +20,6 @@ sine_drive_interpolators3=sine_drive_data3["drives"]
 sine_drive_interpolators=vcat(sine_drive_interpolators1,sine_drive_interpolators2,sine_drive_interpolators3)
 
 ### using the evoked model:
-
-
 save_path="./"
 save_traj=false
 
@@ -66,29 +63,6 @@ stimulus_type="envelope"
 
 tuned_phase_resetting_oscillator_PCMs=get_coupled_oscillator_PCM_across_60freqs_randinitcond(p,u0,time_range,PCM_range,freq_range,save_traj,save_path,stimulus_type)
 scatter(tuned_phase_resetting_oscillator_PCMs,xlims=(-1,1),ylims=(-1,1),aspect_ratio=:equal,title="sine+1 stim - tuned coupled oscillator",marker_z=frequencies)
-
-#to inspect trajectory and its response to stimulus:
-# traj_path_coupled_oscillator="/Users/as15635/Documents/Projects/Shannon_et_al/Trajectories/5000sr_oscillator_response_to_sine_stimulus_freq_range_0.5to30.0Hz_peakenvelope_transformed.arrow.lz4"
-# trajectories_coupled_oscillator=Matrix(DataFrame(Arrow.Table(traj_path_coupled_oscillator)))
-# sine_impulses=get_unitary_peakenv_impulses(sine_drive_interpolators,phoneme_sampling_rate) 
-# traj_times=range(5.5,10.0,length=size(trajectories_coupled_oscillator,1))
-# stimulus_indexes=traj_times.*phoneme_sampling_rate  
-# stimulus_times=stimulus_indexes./phoneme_sampling_rate
-# collect(stimulus_times)
-# ps_coupled=[]
-# for freq_idx in 1:5:50
-#     p=plot(traj_times,trajectories_coupled_oscillator[:,freq_idx],xlabel="Time (s)")
-#     plot!(p,stimulus_times,sine_impulses[freq_idx](stimulus_indexes),label="Stimulus",xlabel="Time (s)",xlims=(5.0,10.0))
-#     #plot sine wave on top:
-#     plot!(p,stimulus_times, sine_drive_interpolators[freq_idx](stimulus_indexes))
-#     push!(ps_coupled,p)
-# end
-# plot(ps_coupled...,layout=(5,2),size=(1200,800))
-
-
-
-
-
 
 #slow parameter set NMM
 #Slow (C0066D025) run
@@ -161,17 +135,12 @@ function compute_mean_resultant(PCMs)
     return mean_resultant
 end
 
-
 #plot all four cases on one figure: PPP (evoked impulse stim), coupled oscillator sine stim, NGNMM slow sine stim, NGNMM fast sine stim
 one_column_size=figure_size_tuple(1, aspect_ratio=1.0) #square aspect ratio for 4 panel plot, will be adjusted to fit 4 panels in one column width.
 p1=scatter(Evoked_PCMs,xlims=(-1.1,1.1),ylims=(-1.1,1.1),marker_z=frequencies,label=nothing, cbar=false,markerstrokewidth=0, markersize=6,xlabel=L"$\textrm{Real}$", ylabel=L"$\textrm{Imaginary}$");
 plot!(p1, circle_x, circle_y, linestyle=:dash, linecolor=:gray, label=nothing,size=one_column_size);
 quiver!(p1,[0.0],[0.0],quiver=([real(compute_mean_resultant(Evoked_PCMs))],[imag(compute_mean_resultant(Evoked_PCMs))]),arrow=:arrow,linewidth=2,linecolor=:black,label="Mean Resultant");
 plot!(dpi=300)
-
-#testing saving one column figure.
-# savefig(p1,"Evoked_model_PCMs_one_column_300dpi_72pixperinch.pdf")
-
 
 p2=scatter(tuned_phase_resetting_oscillator_PCMs,xlims=(-1.1,1.1),ylims=(-1.1,1.1),marker_z=frequencies,label=nothing, cbar=false,markerstrokewidth=0, markersize=6,xlabel=L"\textrm{Real}", ylabel=L"\textrm{Imaginary}");
 plot!(p2, circle_x, circle_y, linestyle=:dash, linecolor=:gray, label=nothing,size=one_column_size);
@@ -189,25 +158,6 @@ h2 = scatter([0,0], [0,1], zcolor=[0,1], clims=clims,
 l=@layout [grid(2,2) a{0.01w}]
 plot(p1,p2,p3,p4,h2,layout=l,right_margin=3Plots.mm,dpi=300,markersize=4,size=figure_size_tuple(2, aspect_ratio=1.3))
 savefig("PCM_comparison_4panel_twocolwidth.pdf")
-#format nicely:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ### phase-resetting oscillator case without frequency adjustment:
 u0=ComponentArray(θ=0.0, r=1.0)
